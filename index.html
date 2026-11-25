@@ -1236,8 +1236,12 @@ function kcVoice(kind) {
   var vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
   var en = vs.filter(function (v) { return /^en/i.test(v.lang); });
   var male = /male|daniel|guy|david|george|ryan|arthur|james|fred|alex/i, fem = /female|samantha|aria|jenny|zira|sonia|libby|karen|google us english|serena|moira/i;
-  var fv = en.filter(function (v) { return fem.test(v.name); });   /* owner, 25 Nov 2026: the student is Tala, so both voices are female; Tala uses a second voice when there is one */
-  var pick = kind === 'yasser' ? (fv[1] || fv[0]) : fv[0];
+  var fv = en.filter(function (v) { return fem.test(v.name) || /emma|ava|michelle|ana\b|natasha|clara/i.test(v.name); });
+  /* owner, 25 Nov 2026: Tala has a soft female voice. Prefer the natural (neural) voices in Edge/Chrome, softest first. */
+  var soft = ['emma', 'ava', 'jenny', 'michelle', 'aria', 'sonia', 'libby', 'natasha', 'clara', 'samantha', 'google uk english female', 'zira'];
+  var rank = function (v) { var n = v.name.toLowerCase(), i = soft.findIndex(function (k) { return n.indexOf(k) > -1; }); return (i < 0 ? 50 : i) - (/natural|neural|online/.test(n) ? 100 : 0); };
+  fv.sort(function (a, b) { return rank(a) - rank(b); });
+  var pick = kind === 'yasser' ? fv[0] : (fv.filter(function (v) { return v !== fv[0]; })[0] || fv[0]);
   return pick || en[0] || null;
 }
 function kcSpeak(text, kind, onend) {
@@ -1246,7 +1250,7 @@ function kcSpeak(text, kind, onend) {
     speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g, '').replace(/[👋🙂🙏👏💪😊🎉]/g, ''));
     var v = kcVoice(kind); if (v) u.voice = v;
-    u.rate = kind === 'yasser' ? 1.0 : 1.02; u.pitch = kind === 'yasser' ? 1.2 : 1.0;
+    u.rate = kind === 'yasser' ? 0.9 : 1.02; u.pitch = kind === 'yasser' ? 1.05 : 1.0; if (kind === 'yasser') u.volume = 0.9;   /* soft, calm pace for Tala */
     u.onend = function () { onend && onend(); }; u.onerror = function () { onend && onend(); };
     speechSynthesis.speak(u);
   } catch (e) { onend && onend(); }
