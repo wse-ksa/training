@@ -353,6 +353,7 @@
 /* owner, 25 Nov 2026: screens fit without scrolling */
 .kc-shot img{max-height:calc(100vh - 300px);width:auto;max-width:100%;display:block;margin:0 auto}
 @media(max-height:760px){.kc-wrap{padding-top:12px}.kc h2{margin-bottom:6px}.kc .lead{font-size:15.5px;margin-bottom:8px}}
+.kc-spotnav{margin:0 0 8px}.kc-say{margin:0 0 10px}
 
 </style></head><body><div id="kcRoot"></div><script>
 (function(){
@@ -433,9 +434,9 @@ function kcSpot(host, img, W, H, steps, onDone) {
   var sp = kcEl('div', 'kc-spot', '<img alt="">' + '<div class="hole off"></div><div class="lab"></div><div class="ptr">' + KC_PTR + '</div>');
   kc$('img', sp).src = img; wrap.appendChild(sp);
   sp.style.maxWidth = 'calc((max(100vh - 400px, 300px)) * ' + (W / H).toFixed(4) + ')'; sp.style.marginLeft = 'auto'; sp.style.marginRight = 'auto';   /* owner, 25 Nov 2026: screenshot fits the screen, no scrolling */
-  var say = kcEl('div', 'kc-say'); wrap.appendChild(say);
+  var say = kcEl('div', 'kc-say');
   var nav = kcEl('div', 'kc-spotnav', '<button class="kc-btn ghost sm" data-p>◀</button><div class="dots"></div><button class="kc-btn sm" data-n>Next tip ▶</button>');
-  wrap.appendChild(nav);
+  wrap.insertBefore(nav, sp); wrap.insertBefore(say, sp);   /* owner, 25 Nov 2026: tip text and Next tip above the screenshot, always in view */
   var dots = kc$('.dots', nav); steps.forEach(function () { dots.appendChild(kcEl('i')); });
   var i = -1, seen = 0, hole = kc$('.hole', sp), lab = kc$('.lab', sp), ptr = kc$('.ptr', sp);
   function pc(v, t) { return (v / t * 100) + '%'; }
