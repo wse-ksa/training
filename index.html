@@ -1247,6 +1247,13 @@ function kcVoice(kind) {
   var soft = ['emma', 'ava', 'jenny', 'michelle', 'aria', 'sonia', 'libby', 'natasha', 'clara', 'samantha', 'google uk english female', 'zira'];
   var rank = function (v) { var n = v.name.toLowerCase(), i = soft.findIndex(function (k) { return n.indexOf(k) > -1; }); return (i < 0 ? 50 : i) - (/natural|neural|online/.test(n) ? 100 : 0); };
   fv.sort(function (a, b) { return rank(a) - rank(b); });
+  /* owner, 25 Nov 2026: Tala sounds like a soft Arabic female voice speaking English. Prefer a female Arabic (Saudi first) voice, natural voices first; fall back to a soft English voice. */
+  if (kind === 'yasser') {
+    var arF = /zariyah|hoda|salma|amany|laila|layla|fatima|mouna|noura|amal|reem|sana|iman|google/i, arM = /hamed|naayf|shakir|taim|rami|bassel|hamdan|omar|male/i;
+    var ar = vs.filter(function (v) { return /^ar/i.test(v.lang) && !arM.test(v.name); });
+    ar.sort(function (a, b) { var s = function (v) { return (/sa$/i.test(v.lang) ? 0 : 5) + (/natural|neural|online/i.test(v.name) ? 0 : 10) + (arF.test(v.name) ? 0 : 3); }; return s(a) - s(b); });
+    if (ar[0]) return ar[0];
+  }
   var pick = kind === 'yasser' ? fv[0] : (fv.filter(function (v) { return v !== fv[0]; })[0] || fv[0]);
   return pick || en[0] || null;
 }
@@ -1255,7 +1262,7 @@ function kcSpeak(text, kind, onend) {
   try {
     speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g, '').replace(/[👋🙂🙏👏💪😊🎉]/g, ''));
-    var v = kcVoice(kind); if (v) u.voice = v;
+    var v = kcVoice(kind); if (v) { u.voice = v; u.lang = v.lang; }
     u.rate = kind === 'yasser' ? 0.9 : 1.02; u.pitch = kind === 'yasser' ? 1.05 : 1.0; if (kind === 'yasser') u.volume = 0.9;   /* soft, calm pace for Tala */
     u.onend = function () { onend && onend(); }; u.onerror = function () { onend && onend(); };
     speechSynthesis.speak(u);
