@@ -1498,7 +1498,6 @@ function kcVoiceTask(el, api, V) {
   kc$('[data-hear]', el).onclick = function () { var w = KC.sound; KC.sound = true; kcSpeak(V.line, V.voice || 'yasser', function () { KC.sound = w; }); };
   kc$('[data-howto]', el).onclick = function () { kcMicGuide(function () { tx.focus(); }); };
   tx.oninput = function () { an.disabled = !tx.value.trim(); };   /* owner, 25 Nov 2026: any reply can get feedback */
-  var sk = document.createElement('button'); sk.className = 'kc-btn ghost sm'; sk.style.cssText = 'margin-left:10px'; sk.textContent = 'Skip for now →'; sk.onclick = function () { if (!api._vd) { api._vd = 1; api.done(); } sk.disabled = true; sk.textContent = 'Skipped. Tap Continue'; }; an.parentNode.insertBefore(sk, an.nextSibling);   /* owner, 25 Nov 2026: never block the course on the voice task */
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition, r = null, on = false, base = '', stopT;
   var fp = document.featurePolicy || document.permissionsPolicy, micOK = !!SR && !(fp && fp.allowsFeature && !fp.allowsFeature('microphone'));
   function dictate() { st.innerHTML = '🎤 The recording window could not open here. <b>The cursor is now in the reply box:</b> press <b>Windows + H</b> (PC) or the 🎤 on your phone keyboard, and speak. Or just type.'; tx.placeholder = 'Click here first, then press Windows + H to speak, or type your reply'; tx.focus(); tx.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
