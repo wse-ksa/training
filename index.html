@@ -1671,7 +1671,7 @@ function kcVoiceConvo(el, api) {
       R.good.map(function (g) { return '<div class="g">✓ ' + g + '</div>'; }).join('') + R.tryx.map(function (g) { return '<div class="t">→ ' + g + '</div>'; }).join('') +
       '<details><summary>See a model reply</summary><div class="kc-msg me" style="max-width:100%;margin-top:6px">' + T.model + '</div></details>';
     card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    tx.disabled = true; mic.disabled = true; turn++; drawDots();
+    tx.disabled = true; mic.disabled = true; mic.classList.remove('call'); st.textContent = 'Read your feedback above, then continue the call.'; turn++; drawDots();
     if (turn < N) { send.disabled = false; send.textContent = 'Continue the call →'; send.onclick = function () { talaSays(turn); }; }
     else { send.disabled = false; send.textContent = 'See my call score →'; send.onclick = finish; }
   }
