@@ -1617,7 +1617,7 @@ function kcTalaScore(text, T) {
 function kcVoiceConvo(el, api) {
   var N = KC_TALA.length, turn = 0, scores = [], texts = [];
   el.innerHTML = '<div class="kc-stage-h"><span class="kc-pill" style="background:#5B4BC4;color:#fff">🎙 VOICE CHALLENGE</span><span class="kc-pill">Mission bonus</span></div><h2 style="margin-top:10px">Now have the call, in your own words</h2><p class="lead">Real calls don’t come with options. Talk to Tala for <b>5 replies</b>. After each reply you get instant feedback, then Tala answers.</p>' +
-    '<div class="kc-grid kc-g2" style="align-items:start"><div><div class="kc-phone" style="width:min(360px,100%)"><div class="scr" style="height:440px"><div class="bar"><div class="av">T</div><div>Tala<small>Thu 21 Aug · you call her</small></div></div><div class="msgs" data-log></div></div></div><div style="text-align:center;margin-top:10px"><button class="kc-btn ghost sm" data-hear>🔊 Hear Tala</button></div></div>' +
+    '<div class="kc-grid kc-g2" style="align-items:start"><div><div class="kc-phone" style="width:min(360px,100%)"><div class="scr" style="height:440px"><div class="bar"><div class="av">T</div><div>Tala<small>Thu 21 Aug · you call her</small></div></div><div class="msgs" data-log></div></div></div><div style="text-align:center;margin-top:10px"><button class="kc-btn ghost sm" data-hear>🔊 Hear again</button></div></div>' +
     '<div class="kc-card" data-card><div class="kc-tdots" data-dots></div><div class="kc-fbp" data-fbp></div>' +
     '<div class="kc-rec"><button class="kc-mic call" data-mic title="Record">🎙</button><div class="w"><div class="st" data-st>Tap the mic and answer Tala</div><div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div>' +
     '<div class="kc-f" style="margin-top:10px"><textarea data-tx rows="3" placeholder="Your words appear here. You can also type."></textarea></div><div style="margin-top:10px"><button class="kc-btn" data-send disabled>Send my reply ➤</button></div></div></div>';
@@ -1625,10 +1625,12 @@ function kcVoiceConvo(el, api) {
   function drawDots() { dots.innerHTML = '<b>Reply ' + Math.min(turn + 1, N) + ' of ' + N + '</b><span>' + KC_TALA.map(function (x, i) { return '<i class="' + (i < scores.length ? (scores[i] >= 70 ? 'ok' : 'mid') : i === turn ? 'now' : '') + '"></i>'; }).join('') + '</span>'; }
   function talaSays(i) {
     var ty = kcEl('div', 'kc-typing', '<i></i><i></i><i></i>'); log.appendChild(ty); log.scrollTop = 1e4;
-    setTimeout(function () { ty.remove(); log.appendChild(kcEl('div', 'kc-msg them', KC_TALA[i].line)); log.scrollTop = 1e4; if (KC.sound) kcSpeak(KC_TALA[i].line, 'yasser'); }, 900);
+    var yourTurn = function () { if (turn !== i) return; mic.classList.add('call'); st.textContent = 'Your turn: tap the mic and answer Tala'; };
+    setTimeout(function () { ty.remove(); log.appendChild(kcEl('div', 'kc-msg them', KC_TALA[i].line)); log.scrollTop = 1e4;
+      st.textContent = '🔊 Tala is speaking…'; var w = KC.sound, done = false, fin = function () { if (done) return; done = true; KC.sound = w; yourTurn(); };
+      KC.sound = true; kcSpeak(KC_TALA[i].line, 'yasser', fin); setTimeout(fin, 12000); }, 900);   /* owner, 25 Nov 2026: Tala speaks automatically, then the mic pulses */
     fbp.className = 'kc-fbp goal'; fbp.innerHTML = '<div class="h">🎯 Your goal for reply ' + (i + 1) + '</div><div>' + KC_TALA[i].goal + '</div>';
-    tx.value = ''; send.disabled = true; send.textContent = 'Send my reply ➤'; send.onclick = doSend; mic.classList.add('call'); mic.disabled = false; tx.disabled = false; drawDots();
-    st.textContent = 'Tap the mic and answer Tala';
+    tx.value = ''; send.disabled = true; send.textContent = 'Send my reply ➤'; send.onclick = doSend; mic.classList.remove('call'); mic.disabled = false; tx.disabled = false; drawDots();
   }
   kc$('[data-hear]', el).onclick = function () { var w = KC.sound; KC.sound = true; kcSpeak(KC_TALA[Math.min(turn, N - 1)].line, 'yasser', function () { KC.sound = w; }); };
   tx.oninput = function () { send.disabled = !tx.value.trim(); if (tx.value.trim()) mic.classList.remove('call'); };
