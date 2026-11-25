@@ -500,6 +500,7 @@ function kcRender() {
     next: function () { kcNext(); }
   };
   it.f(scr, api);
+  kcFitWatch(scr);
   kc$('[data-back]').style.visibility = KC.sc > 0 ? 'visible' : 'hidden';
   kc$('[data-next]').textContent = KC.sc === KC_FLAT.length - 1 ? 'Finish' : 'Continue →';
   kc$$('.kc-steps i b').forEach(function (b, k) {
@@ -509,6 +510,23 @@ function kcRender() {
   });
   KCAPI.save('progress', { sc: KC.sc, of: KC_FLAT.length, ch: it.ci, chapter: ch.t, xp: KC.xp, role: KC.role, name: KC.name, pre: KC.pre, mission: KC.mission, badges: KC.badges });
 }
+/* owner, 26 Nov 2026: every screen fits the window (no scrolling to reach Continue): shrink the screen content when it is taller than the space between the top bar and the bottom bar */
+function kcFit() {
+  var scr = kc$('.kc-scr'); if (!scr) return;
+  var top = kc$('.kc-top'), nav = kc$('.kc-nav'), wrap = kc$('.kc-wrap');
+  var H = (KC._scroller ? KC._scroller.clientHeight : window.innerHeight) - (top ? top.offsetHeight : 0) - (nav ? nav.offsetHeight : 0) - 34;
+  var z0 = parseFloat(scr.style.zoom) || 1, h = scr.getBoundingClientRect().height / z0;
+  if (window.innerWidth < 700 || !h) { scr.style.zoom = ''; return; }   /* phones keep normal size and scroll */
+  var z = Math.max(0.5, Math.min(1, H / h)); z = Math.round(z * 100) / 100;
+  if (Math.abs(z - z0) > 0.01) scr.style.zoom = z === 1 ? '' : z;
+}
+function kcFitWatch(scr) {
+  var t; var go = function () { clearTimeout(t); t = setTimeout(kcFit, 60); };
+  try { if (KC._fro) KC._fro.disconnect(); KC._fro = new ResizeObserver(go); Array.prototype.forEach.call(scr.children, function (c) { KC._fro.observe(c); }); KC._fro.observe(scr); } catch (e) {}
+  try { if (KC._fmo) KC._fmo.disconnect(); KC._fmo = new MutationObserver(function () { go(); try { Array.prototype.forEach.call(scr.children, function (c) { KC._fro.observe(c); }); } catch (e) {} }); KC._fmo.observe(scr, { childList: true, subtree: true }); } catch (e) {}
+  [0, 300, 1200].forEach(function (d) { setTimeout(kcFit, d); });
+}
+window.addEventListener('resize', function () { clearTimeout(KC._frt); KC._frt = setTimeout(kcFit, 120); });
 function kcNext() { if (KC.sc < KC_FLAT.length - 1) { KC.sc++; kcRender(); } }
 function kcBack() { if (KC.sc > 0) { KC.sc--; kcRender(); } }
 function kcBoot(root) {
@@ -1274,6 +1292,7 @@ function kcSpeak(text, kind, onend) {
     var tala = kind === 'yasser';
     u.rate = tala ? 0.9 : 1.02; u.pitch = tala ? (kcVoice.fem ? 1.08 : 1.45) : 1.0; if (tala) u.volume = 0.9;   /* soft, calm pace for Tala; higher pitch if the device has no female voice */
     u.onend = function () { onend && onend(); }; u.onerror = function () { onend && onend(); };
+    kcSpeak._u = u;   /* keep a reference: Chrome can drop an utterance that is garbage-collected mid-sentence */
     speechSynthesis.speak(u);
   } catch (e) { onend && onend(); }
 }
@@ -1353,23 +1372,27 @@ function kcBriefing(el, api) {
     { d: 5, h: '<div class="vt"><b style="font-size:72px">57</b><br>days without an Encounter</div>', c: 'In the real story, fifty-seven days passed between two Encounters.' },
     { d: 6, h: '<div class="vt">You have <b>6 decisions</b>.<br><small style="font-size:16px;opacity:.85">Each one is rated against the WSE SOP, KSA standards and global best practice in student support.</small></div>', c: 'You have six decisions. Each one is rated against the WSE SOP, our KSA standards and global best practice in student support. Good luck.' }
   ];
-  var total = SC.reduce(function (a, s) { return a + s.d; }, 0), i = -1, t0 = 0, raf, playing = false, done = false;
+  /* owner, 26 Nov 2026: the narration was cut because the next scene started on a fixed timer and stopped the voice. Each scene now waits for its narration to finish before moving on. */
+  SC.forEach(function (x) { x.d = Math.max(x.d, x.c.split(/\s+/).length / 2.3 + 1.2); });   /* estimated spoken length, for the progress bar and the no-sound timing */
+  var total = SC.reduce(function (a, s) { return a + s.d; }, 0), i = -1, t0 = 0, raf, playing = false, done = false, run = 0, before = 0, sStart = 0, tmr;
   function scene(k) {
-    var s = SC[k]; stg.innerHTML = s.img ? '<img class="' + s.z + '" src="' + KC_IMG[s.img] + '">' : s.h; cap.textContent = s.c;
-    kcSpeak(s.c, 'narr');
+    var s = SC[k], r = run, moved = false; i = k; sStart = Date.now();
+    stg.innerHTML = s.img ? '<img class="' + s.z + '" src="' + KC_IMG[s.img] + '">' : s.h; cap.textContent = s.c;
+    var next = function () { if (r !== run) return; before += (Date.now() - sStart) / 1000; if (k + 1 < SC.length) scene(k + 1); else stop(true); };
+    var go = function () { if (moved || r !== run) return; moved = true; clearTimeout(tmr); tmr = setTimeout(next, Math.max(600, 2500 - (Date.now() - sStart))); };   /* short pause after each line, at least 2.5 s on screen */
+    if (KC.sound && window.speechSynthesis) { kcSpeak(s.c, 'narr', go); tmr = setTimeout(go, (s.d + 10) * 1000); }   /* safety net if the browser never reports the end */
+    else tmr = setTimeout(function () { moved = true; next(); }, s.d * 1000);
   }
   function tick() {
-    var el2 = (Date.now() - t0) / 1000, acc = 0, k = 0;
-    for (; k < SC.length; k++) { if (el2 < acc + SC[k].d) break; acc += SC[k].d; }
-    if (k >= SC.length) { stop(true); return; }
-    if (k !== i) { i = k; scene(k); }
-    bar.style.width = (el2 / total * 100) + '%'; tt.textContent = '0:' + ('0' + Math.floor(el2)).slice(-2);
+    if (!playing) return;
+    var est = before + Math.min(SC[i] ? SC[i].d : 0, (Date.now() - sStart) / 1000), el2 = (Date.now() - t0) / 1000;
+    bar.style.width = Math.min(100, est / total * 100) + '%'; tt.textContent = Math.floor(el2 / 60) + ':' + ('0' + Math.floor(el2 % 60)).slice(-2);
     raf = requestAnimationFrame(tick);
   }
-  function stop(end) { cancelAnimationFrame(raf); playing = false; play.textContent = '↺ Replay'; if (end) { bar.style.width = '100%'; finish(); } }
+  function stop(end) { cancelAnimationFrame(raf); clearTimeout(tmr); playing = false; play.textContent = '↺ Replay'; if (end) { bar.style.width = '100%'; finish(); } }
   function finish() { if (!done) { done = true; api.done('Mission accepted?'); } }
-  play.onclick = function () { if (playing) return; playing = true; i = -1; t0 = Date.now(); play.textContent = '● Playing'; tick(); };
-  stg.innerHTML = SC[0].h; cap.textContent = 'Press play to start your briefing (35 seconds).';
+  play.onclick = function () { if (playing) return; playing = true; run++; before = 0; t0 = Date.now(); play.textContent = '● Playing'; scene(0); tick(); };
+  stg.innerHTML = SC[0].h; cap.textContent = 'Press play to start your briefing (about 45 seconds).';
   setTimeout(function () { if (!done) api.done('Watch the briefing, or skip ahead'); }, 9000);
   api.hint('Play the briefing');
 }
