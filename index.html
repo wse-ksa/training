@@ -1242,28 +1242,37 @@ function kcVoice(kind) {
   var vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
   var en = vs.filter(function (v) { return /^en/i.test(v.lang); });
   var male = /male|daniel|guy|david|george|ryan|arthur|james|fred|alex/i, fem = /female|samantha|aria|jenny|zira|sonia|libby|karen|google us english|serena|moira/i;
-  var fv = en.filter(function (v) { return fem.test(v.name) || /emma|ava|michelle|ana\b|natasha|clara/i.test(v.name); });
+  var fv = en.filter(function (v) { return (fem.test(v.name) || /emma|ava|michelle|ana\b|natasha|clara|aria|jenny|sonia|libby|tessa|fiona|victoria|allison|susan|hazel|nicky|zoe|kate|catherine|karen/i.test(v.name)) && !/\bmale\b/i.test(v.name); });
   /* owner, 25 Nov 2026: Tala has a soft female voice. Prefer the natural (neural) voices in Edge/Chrome, softest first. */
   var soft = ['emma', 'ava', 'jenny', 'michelle', 'aria', 'sonia', 'libby', 'natasha', 'clara', 'samantha', 'google uk english female', 'zira'];
   var rank = function (v) { var n = v.name.toLowerCase(), i = soft.findIndex(function (k) { return n.indexOf(k) > -1; }); return (i < 0 ? 50 : i) - (/natural|neural|online/.test(n) ? 100 : 0); };
   fv.sort(function (a, b) { return rank(a) - rank(b); });
   /* owner, 25 Nov 2026: Tala sounds like a soft Arabic female voice speaking English. Prefer a female Arabic (Saudi first) voice, natural voices first; fall back to a soft English voice. */
   if (kind === 'yasser') {
-    var arF = /zariyah|hoda|salma|amany|laila|layla|fatima|mouna|noura|amal|reem|sana|iman|google/i, arM = /hamed|naayf|shakir|taim|rami|bassel|hamdan|omar|male/i;
-    var ar = vs.filter(function (v) { return /^ar/i.test(v.lang) && !arM.test(v.name); });
-    ar.sort(function (a, b) { var s = function (v) { return (/sa$/i.test(v.lang) ? 0 : 5) + (/natural|neural|online/i.test(v.name) ? 0 : 10) + (arF.test(v.name) ? 0 : 3); }; return s(a) - s(b); });
-    if (ar[0]) return ar[0];
+    /* owner, 26 Nov 2026: Tala was still male on some devices (unknown Arabic voices such as Maged/Majed/Naayf). Only use an Arabic voice whose name is a KNOWN female voice; otherwise a soft English female voice. */
+    var arF = /zariyah|hoda|salma|amany|laila|layla|fatima|mouna|noura|amal|reem|sana|iman|aysha|amina|rana|maryam|mariam|yasmin|lana|female|google\s*(العربية|arabic)/i, arM = /hamed|naayf|maged|majed|tarik|shakir|taim|rami|bassel|hamdan|omar|moaz|ali\b|hedi|jamal|ismael|saleh|salim|fahed|laith|abdullah|rayyan|\bmale/i;
+    var ar = vs.filter(function (v) { return /^ar/i.test(v.lang) && arF.test(v.name) && !arM.test(v.name); });
+    ar.sort(function (a, b) { var s = function (v) { return (/natural|neural|online/i.test(v.name) ? 0 : 10) + (/sa$/i.test(v.lang) ? 0 : 3); }; return s(a) - s(b); });
+    if (ar[0]) { kcVoice.fem = true; return ar[0]; }
   }
   var pick = kind === 'yasser' ? fv[0] : (fv.filter(function (v) { return v !== fv[0]; })[0] || fv[0]);
+  kcVoice.fem = !!pick;
   return pick || en[0] || null;
 }
 function kcSpeak(text, kind, onend) {
   if (!KC.sound || !window.speechSynthesis) { onend && onend(); return; }
+  /* owner, 26 Nov 2026: voices load late in some browsers; speaking before they load uses the default (often male) voice, so wait for them first */
+  if (!speechSynthesis.getVoices().length && !kcSpeak._w) {
+    kcSpeak._w = 1; var go = function () { if (go.d) return; go.d = 1; kcSpeak(text, kind, onend); };
+    try { speechSynthesis.addEventListener('voiceschanged', go, { once: true }); } catch (e) {}
+    setTimeout(go, 1500); return;
+  }
   try {
     speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g, '').replace(/[👋🙂🙏👏💪😊🎉]/g, ''));
     var v = kcVoice(kind); if (v) { u.voice = v; u.lang = v.lang; }
-    u.rate = kind === 'yasser' ? 0.9 : 1.02; u.pitch = kind === 'yasser' ? 1.05 : 1.0; if (kind === 'yasser') u.volume = 0.9;   /* soft, calm pace for Tala */
+    var tala = kind === 'yasser';
+    u.rate = tala ? 0.9 : 1.02; u.pitch = tala ? (kcVoice.fem ? 1.08 : 1.45) : 1.0; if (tala) u.volume = 0.9;   /* soft, calm pace for Tala; higher pitch if the device has no female voice */
     u.onend = function () { onend && onend(); }; u.onerror = function () { onend && onend(); };
     speechSynthesis.speak(u);
   } catch (e) { onend && onend(); }
