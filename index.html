@@ -1595,12 +1595,13 @@ function kcVoiceTask(el, api, V) {
   var W = !!V.write;   /* owner, 26 Nov 2026: open-ended writing challenges reuse this screen without the mic */
   el.innerHTML = '<div class="kc-stage-h"><span class="kc-pill" style="background:#5B4BC4;color:#fff">' + (W ? '✍️ WRITING CHALLENGE' : '🎙 SPEAKING CHALLENGE') + '</span>' + (V.badge ? '<span class="kc-pill">' + V.badge + '</span>' : '') + '</div><h2 style="margin-top:10px">' + V.title + '</h2><p class="lead">' + V.sit + '</p>' +
     '<div class="kc-grid kc-g2" style="align-items:start"><div><div class="kc-phone" style="width:min(340px,100%)"><div class="scr" style="height:300px"><div class="bar"><div class="av">' + V.name[0] + '</div><div>' + V.name + '<small>' + V.sub + '</small></div></div><div class="msgs"><div class="kc-msg them">' + V.line + '</div></div></div></div><div style="text-align:center;margin-top:10px"><button class="kc-btn ghost sm" data-hear>🔊 Hear ' + V.name + '</button></div></div>' +
-    '<div class="kc-card"><div data-res></div><h3>' + (V.ask || 'Your reply, in your own words') + '</h3><p class="mute" style="font-size:13.5px">' + (W ? 'Write it exactly as you would send it.' : 'Press the mic and speak as if you were on the call. You can also type.') + '</p><div class="kc-rec"' + (W ? ' style="display:none"' : '') + '><button class="kc-mic" data-mic title="Record">🎙</button><div class="w"><div class="st" data-st>Tap to record (up to 45 seconds)</div><div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div><div style="margin-top:6px' + (W ? ';display:none' : '') + '"><button class="kc-btn ghost sm" data-howto style="padding:4px 10px">❓ How do I speak my reply?</button></div><div class="kc-f" style="margin-top:10px"><textarea data-tx placeholder="' + (W ? 'Type your message here…' : 'Your words will appear here…') + '"' + (W ? ' style="min-height:130px"' : '') + '></textarea></div><button class="kc-btn" data-an disabled>✨ Get feedback</button></div></div>';
+    '<div class="kc-card"><div data-res></div><h3>' + (V.ask || 'Your reply, in your own words') + '</h3><p class="mute" style="font-size:13.5px">' + (W ? 'Write it exactly as you would send it.' : 'Press the mic and speak, as if you were on the call.') + '</p><div class="kc-rec"' + (W ? ' style="display:none"' : '') + '><button class="kc-mic" data-mic title="Record">🎙</button><div class="w"><div class="st" data-st>Tap to record (up to 45 seconds)</div><div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div><div style="margin-top:6px' + (W ? ';display:none' : '') + '"><button class="kc-btn ghost sm" data-howto style="padding:4px 10px">❓ How do I speak my reply?</button></div><div class="kc-f" style="margin-top:10px"><textarea data-tx placeholder="' + (W ? 'Type your message here…' : 'Your words appear here. Fix any word the mic misheard.') + '"' + (W ? ' style="min-height:130px"' : '') + '></textarea></div><button class="kc-btn" data-an disabled>✨ Get feedback</button></div></div>';
   var tx = kc$('[data-tx]', el), an = kc$('[data-an]', el), mic = kc$('[data-mic]', el), st = kc$('[data-st]', el), rec = kc$('.kc-rec', el), res = kc$('[data-res]', el), tries = 0;
   kc$('[data-hear]', el).onclick = function () { var w = KC.sound; KC.sound = true; kcSpeak(V.line, V.voice || 'yasser', function () { KC.sound = w; }); };
   /* owner, 26 Nov 2026: the student's voice note plays by itself when the screen opens (staff often missed the Hear button) */
   if (!W) { var hb = kc$('[data-hear]', el); hb.innerHTML = hb.innerHTML.replace(/Hear [^<]*/, 'Hear again'); setTimeout(function () { if (document.body.contains(el)) kcSpeak(V.line, V.voice || 'yasser', function () {}); }, 900); }
   kc$('[data-howto]', el).onclick = function () { kcMicGuide(function () { tx.focus(); }); };
+  if (!W) kcTypeGate(tx, kc$('[data-howto]', el).parentNode);
   tx.oninput = function () { an.disabled = !tx.value.trim(); };   /* owner, 25 Nov 2026: any reply can get feedback */
   if (!W) mic.classList.add('call'); var stopCall = function () { mic.classList.remove('call'); }; mic.addEventListener('click', stopCall); tx.addEventListener('input', function () { if (tx.value.trim()) stopCall(); });   /* owner, 25 Nov 2026: pulse the mic when it is the staff member's turn */
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition, r = null, on = false, base = '', stopT;
@@ -1659,6 +1660,17 @@ function kcRubric(text, V) {
   if (words > (V.maxW || 120)) { score = Math.max(0, score - 10); extra.push('Quite long. Keep it focused, about ' + (V.maxW || 120) + ' words at most.'); }
   return { score: score, criteria: C, extra: extra, words: words, source: 'rubric' };
 }
+/* owner, 26 Nov 2026: encourage speaking. On speaking challenges the text box stays hidden until the person has recorded (their words then appear there to correct) or taps "Type instead". If the browser cannot recognise speech, the box shows straight away. */
+function kcTypeGate(tx, after) {
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SR || !tx) return;
+  var box = tx.closest('.kc-f') || tx; box.style.display = 'none';
+  var a = kcEl('button', 'kc-btn ghost sm', '⌨️ Can’t use the mic? Type instead'); a.style.marginTop = '8px'; a.style.padding = '4px 10px';
+  var open = function () { box.style.display = ''; if (a.parentNode) a.parentNode.removeChild(a); clearInterval(iv); };
+  a.onclick = function () { open(); tx.focus(); };
+  after.parentNode.insertBefore(a, after.nextSibling);
+  var iv = setInterval(function () { if (!document.body.contains(tx)) { clearInterval(iv); return; } if (tx.value.trim()) open(); }, 300);
+}
+
 var KC_OPEN = {
   /* writing, after Stage 1 (Detect) */
   w1: function (el, api) { kcVoiceTask(el, api, { id: 'w_tala_wa', write: true, badge: 'Stage 1 · Your words', title: 'Write the WhatsApp to Tala', name: 'Tala', sub: 'Last seen: yesterday', voice: 'yasser',
@@ -1760,8 +1772,9 @@ function kcVoiceConvo(el, api) {
     '<div class="kc-grid kc-g2" style="align-items:start"><div><div class="kc-phone" style="width:min(360px,100%)"><div class="scr" style="height:440px"><div class="bar"><div class="av">T</div><div>Tala<small>Thu 21 Aug · you call her</small></div></div><div class="msgs" data-log></div></div></div><div style="text-align:center;margin-top:10px"><button class="kc-btn ghost sm" data-hear>🔊 Hear again</button></div></div>' +
     '<div class="kc-card" data-card><div class="kc-tdots" data-dots></div><div class="kc-fbp" data-fbp></div>' +
     '<div class="kc-rec"><button class="kc-mic call" data-mic title="Record">🎙</button><div class="w"><div class="st" data-st>Tap the mic and answer Tala</div><div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div>' +
-    '<div class="kc-f" style="margin-top:10px"><textarea data-tx rows="3" placeholder="Your words appear here. You can also type."></textarea></div><div style="margin-top:10px"><button class="kc-btn" data-send disabled>Send my reply ➤</button></div></div></div>';
+    '<div class="kc-f" style="margin-top:10px"><textarea data-tx rows="3" placeholder="Your words appear here. Fix any word the mic misheard."></textarea></div><div style="margin-top:10px"><button class="kc-btn" data-send disabled>Send my reply ➤</button></div></div></div>';
   var log = kc$('[data-log]', el), fbp = kc$('[data-fbp]', el), dots = kc$('[data-dots]', el), tx = kc$('[data-tx]', el), send = kc$('[data-send]', el), mic = kc$('[data-mic]', el), st = kc$('[data-st]', el), rec = kc$('.kc-rec', el), card = kc$('[data-card]', el);
+  kcTypeGate(tx, kc$('.kc-rec', el));
   function drawDots() { dots.innerHTML = '<b>Reply ' + Math.min(turn + 1, N) + ' of ' + N + '</b><span>' + KC_TALA.map(function (x, i) { return '<i class="' + (i < scores.length ? (scores[i] >= 70 ? 'ok' : 'mid') : i === turn ? 'now' : '') + '"></i>'; }).join('') + '</span>'; }
   function talaSays(i) {
     var ty = kcEl('div', 'kc-typing', '<i></i><i></i><i></i>'); log.appendChild(ty); log.scrollTop = 1e4;
