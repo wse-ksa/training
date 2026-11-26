@@ -1247,7 +1247,7 @@ function (el, api) {
 function (el, api) {
   var mins = Math.max(1, Math.round((Date.now() - KC.started) / 60000)), d = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   var lg = KC_IMG.logo_white || KC_IMG.logo || '';   /* owner, 26 Nov 2026: logo on white, blends with the certificate */
-  el.innerHTML = '<div class="kc-cert kc-scr">' + (lg ? '<div class="kc-logo"><img src="' + lg + '" alt="Wall Street English"></div>' : '') + '<div class="s">Wall Street English · Saudi Arabia</div><div style="margin-top:14px;color:#5B6B7C">This certifies that</div><div class="n">' + kcEsc(KC.name || 'Team member') + '</div><div style="color:#5B6B7C">' + (KC_ROLES[KC.role] ? KC_ROLES[KC.role].n : '') + '</div><div style="margin:14px 0 4px;color:#5B6B7C">has completed</div><div class="c">Keep them going: protecting student momentum</div><div class="kc-badges"></div><div style="font-size:13px;color:#5B6B7C">' + d + '</div></div>' +
+  el.innerHTML = '<div class="kc-cert kc-scr">' + (lg ? '<div class="kc-logo"><img src="' + lg + '" alt="Wall Street English"></div>' : '') + '<div class="s">Wall Street English · Saudi Arabia</div><div style="margin-top:14px;color:#5B6B7C">This certifies that</div><div class="n">' + kcEsc(KC.name || 'Team member') + '</div><div style="color:#5B6B7C">' + (KC_ROLES[KC.role] ? KC_ROLES[KC.role].n : '') + '</div><div style="margin:14px 0 4px;color:#5B6B7C">has completed the training course on the WSE Saudi Arabia Staff Portal</div><div class="c">Keep them going: protecting student momentum</div><div style="margin-top:4px;font-size:13px;color:#5B6B7C">Course duration: 45 minutes</div><div class="kc-badges"></div><div style="font-size:13px;color:#5B6B7C">' + d + '</div></div>' +
     '<div class="kc-card" style="margin-top:16px"><h3>How sure are you <i>now</i> that you could bring back a student who has gone quiet?</h3><div class="kc-scale" data-post></div></div>' +
     '<div class="kc-card kc-rate" style="margin-top:14px;text-align:center"><div class="kc-pill" style="background:#0B2242;color:#fff;display:inline-block">⭐ RATE THIS COURSE</div><h3 style="margin-top:8px">How would you rate “Keep them going”?</h3><div class="kc-stars"></div><div class="kc-rlab" style="font-weight:700;color:#0B2242;min-height:22px;margin-top:4px">Tap a star</div><div class="kc-f" style="text-align:left;max-width:560px;margin:10px auto 0"><label>What did you like most, or what should we improve? (optional)</label><textarea data-rcom placeholder="e.g. The live call with Tala was very realistic"></textarea></div><div class="kc-f" style="text-align:left;max-width:560px;margin:10px auto 0"><label>One thing you’ll do differently tomorrow</label><textarea data-tomorrow placeholder="e.g. Check the Follow-up Queue at 9:30 and message every no-show"></textarea></div><button class="kc-btn" data-submit disabled>Submit & finish</button></div>';
   /* owner, 26 Nov 2026: downloadable certificate (PNG), no scores */
@@ -1286,11 +1286,12 @@ function kcCertDownload(name, role, date) {
     x.fillStyle = '#5B6B7C'; x.font = '36px Arial'; x.fillText('This certifies that', W / 2, y + 220);
     x.fillStyle = N; x.font = '800 96px Arial'; x.fillText(name, W / 2, y + 340);
     if (role) { x.fillStyle = '#5B6B7C'; x.font = '36px Arial'; x.fillText(role, W / 2, y + 400); }
-    x.fillStyle = '#5B6B7C'; x.font = '36px Arial'; x.fillText('has successfully completed the WSE Staff Training course', W / 2, y + 490);
+    x.fillStyle = '#5B6B7C'; x.font = '36px Arial'; x.fillText('has successfully completed the training course on the WSE Saudi Arabia Staff Portal', W / 2, y + 490);
     x.fillStyle = N; x.font = '800 54px Arial'; x.fillText('Keep them going: protecting student momentum', W / 2, y + 570);
-    x.strokeStyle = '#C9D6E3'; x.lineWidth = 2; x.beginPath(); x.moveTo(W / 2 - 300, y + 660); x.lineTo(W / 2 + 300, y + 660); x.stroke();
-    x.fillStyle = '#33475B'; x.font = '32px Arial'; x.fillText(date, W / 2, y + 710);
-    x.fillStyle = '#6B7A8A'; x.font = '26px Arial'; x.fillText('WSE Saudi Arabia · Service Training', W / 2, y + 760);
+    x.fillStyle = '#5B6B7C'; x.font = '32px Arial'; x.fillText('Course duration: 45 minutes', W / 2, y + 625);
+    x.strokeStyle = '#C9D6E3'; x.lineWidth = 2; x.beginPath(); x.moveTo(W / 2 - 300, y + 675); x.lineTo(W / 2 + 300, y + 675); x.stroke();
+    x.fillStyle = '#33475B'; x.font = '32px Arial'; x.fillText(date, W / 2, y + 722);
+    x.fillStyle = '#6B7A8A'; x.font = '26px Arial'; x.fillText('WSE Saudi Arabia · Service Training', W / 2, y + 770);
     var a = document.createElement('a'); a.download = 'Certificate - Keep them going - ' + name + '.png'; a.href = c.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove();
     kcToast('Certificate downloaded ✓');
   };
