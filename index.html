@@ -1618,8 +1618,9 @@ function kcAnalyzeLocal(text, ctx) {
   var extra = [];
   if (win.length) { score = Math.min(100, score + 8); extra.push('⭐ You mentioned a real win (“' + win[0].trim() + '”). That builds confidence.'); }
   else extra.push('Add one <b>real</b> win: ' + ctx.winHint);
-  if (words < 12) { score = Math.max(0, score - 10); extra.push('A bit short. Aim for 2–4 sentences.'); }
-  if (words > 90) { score = Math.max(0, score - 10); extra.push('Quite long. Students skim long messages, so keep it to about 60 words.'); }
+  if (words < 8) { score = Math.max(0, score - 5); extra.push('A bit short. Aim for 2–4 sentences.'); }
+  if (words > 120) { score = Math.max(0, score - 5); extra.push('Quite long. Students skim long messages, so keep it to about 60 words.'); }
+  score = kcCurve(Math.min(100, score), words, blame.length > 0);
   return { score: score, criteria: C, extra: extra, words: words, source: 'rubric' };
 }
 
@@ -1680,6 +1681,8 @@ function kcVoiceTask(el, api, V) {
 }
 
 /* ===== Owner, 26 Nov 2026: open-ended speaking and writing challenges in "Bring Tala back", scored against SOP criteria ===== */
+/* owner, 26 Nov 2026: easier scoring. A genuine answer (6+ words, no blame) earns base credit: final = 35 + 65% of the rubric score */
+function kcCurve(score, words, blamed) { return (words >= 6 && !blamed) ? Math.min(100, Math.round(35 + 0.65 * score)) : score; }
 function kcRubric(text, V) {
   var t = ' ' + text.toLowerCase().replace(/[’']/g, "'").replace(/\s+/g, ' ') + ' ', words = text.trim().split(/\s+/).filter(Boolean).length;
   var C = V.crit.map(function (c) {
@@ -1688,8 +1691,10 @@ function kcRubric(text, V) {
     return { k: c.k, s: s, tip: (c.not ? !bad.length : s >= 14) ? c.ok : (c.not && bad.length ? c.no.replace('{w}', bad[0].trim()) : c.no) };
   });
   var score = C.reduce(function (a, c) { return a + c.s; }, 0), extra = [];
-  if (words < (V.minW || 15)) { score = Math.max(0, score - 10); extra.push('A bit short. Aim for ' + (V.lenHint || '3–5 sentences') + '.'); }
-  if (words > (V.maxW || 120)) { score = Math.max(0, score - 10); extra.push('Quite long. Keep it focused, about ' + (V.maxW || 120) + ' words at most.'); }
+  if (words < Math.min(15, V.minW || 15)) { score = Math.max(0, score - 5); extra.push('A bit short. Aim for ' + (V.lenHint || '3–5 sentences') + '.'); }
+  else if (words < (V.minW || 15)) extra.push('Good. You could add a little more: ' + (V.lenHint || '3–5 sentences') + '.');
+  if (words > (V.maxW || 120)) { score = Math.max(0, score - 5); extra.push('Quite long. Keep it focused, about ' + (V.maxW || 120) + ' words at most.'); }
+  score = kcCurve(score, words, C.some(function (c, i) { return V.crit[i].not && c.s < 20; }));
   return { score: score, criteria: C, extra: extra, words: words, source: 'rubric' };
 }
 /* owner, 26 Nov 2026: encourage speaking. On speaking challenges the text box stays hidden until the person has recorded (their words then appear there to correct) or taps "Type instead". If the browser cannot recognise speech, the box shows straight away. */
@@ -1722,13 +1727,13 @@ var KC_OPEN = {
   s4: function (el, api) { kcVoiceTask(el, api, { id: 's_tala_plan', badge: 'Stage 4 · Say it out loud', title: 'Agree the comeback plan with Tala', name: 'Tala', sub: 'Educational Advising Session', voice: 'yasser',
     sit: 'In the advising session Tala tells you evenings are impossible now, but mornings before 1 pm on Tuesdays and Saturdays are free. She is on Unit 43. Speak the plan you agree with her, as you would say it in the session.',
     line: 'OK… so what do we do now? I really don’t want to fall behind again.', ask: 'Your plan, in your own words',
-    minW: 35, maxW: 160, lenHint: 'about 30–60 seconds of speaking',
+    minW: 20, maxW: 180, lenHint: 'about 30–60 seconds of speaking',
     crit: [
-      { k: 'Reflect the cause', any: ['evening', 'shift', 'work', 'busy', 'understand', 'sounds like', 'makes sense', 'i hear', 'i know', "don't worry", 'don’t worry', 'tough', 'hard', 'free', 'schedule', 'manageable', 'simple'], need: 2, ok: 'You named the real cause, so the plan fits her life.', no: 'Start by reflecting the cause: “Evenings are hard with your shifts, so let’s use your mornings.”' },
+      { k: 'Reflect & reassure', any: ['evening', 'shift', 'work', 'busy', 'understand', "it's ok", "it's okay", 'its ok', 'no problem', 'support', 'i am sure', "i'm sure", 'with you', 'help you', 'we will', "we'll", 'you can do', 'you will do', 'amazing', 'sounds like', 'makes sense', 'i hear', 'i know', "don't worry", 'don’t worry', 'tough', 'hard', 'free', 'schedule', 'manageable', 'simple'], need: 2, ok: 'You named the real cause, so the plan fits her life.', no: 'Start by reflecting the cause: “Evenings are hard with your shifts, so let’s use your mornings.”' },
       { k: 'Specific plan & goal', any: ['tuesday', 'saturday', 'sunday', 'monday', 'wednesday', 'thursday', 'morning', ' 9', ' 10', ' 11', ' am', 'a.m', 'unit 43', 'encounter', 'book', 'a week', 'per week', 'lesson', 'multimedia', 'workbook', 'goal', ' by '], need: 3, ok: 'Specific days, times and goals. A plan she can actually follow.', no: 'Be specific: the day and time of her Encounter and a mini-goal, e.g. “Tuesday 11 am, and Lessons 1 and 2 by Monday.”' },
       { k: 'Support class per unit (SOP)', any: ['complementary', 'complimentary', 'complementry', 'social club', ' cc ', ' cc,', ' cc.', 'extra class', 'practice class', 'club'], need: 1, ok: 'You added a Complementary Class or Social Club, as the SOP recommends per unit.', no: 'Add one Complementary Class and/or Social Club per unit, as the SOP recommends.' },
-      { k: 'Follow-up date', any: ['check in', 'check on', 'follow up', 'follow-up', 'call you', 'message you', 'text you', 'next week', 'after', 'i’ll check', "i'll check", 'see how', 'see you', 'meet you', 'remind', 'keep in touch', 'track', 'back in your routine'], need: 1, ok: 'You set a follow-up. The SOP advising steps end with follow-up.', no: 'Close with a follow-up: “I’ll message you after Tuesday’s Encounter to see how it went.”' },
-      { k: 'Her agreement', any: ['does that work', 'how does that sound', 'is that ok', 'are you happy', 'what do you think', 'deal', 'okay with you', 'ok for you', 'agree', 'how about', 'shall we', 'would you', 'sounds good', 'together', 'are you ok with', 'can you commit'], need: 1, ok: 'You checked she agrees. Her commitment makes the plan stick.', no: 'Check her commitment: “Does that work for you?”' }
+      { k: 'Follow-up date', any: ['check in', 'check on', 'follow up', 'follow-up', 'call you', 'message you', 'text you', 'next week', 'after', 'i’ll check', "i'll check", 'i will support', 'support you', 'i will call', 'i will check', 'whole contract', 'see how', 'see you', 'meet you', 'remind', 'keep in touch', 'track', 'back in your routine'], need: 1, ok: 'You set a follow-up. The SOP advising steps end with follow-up.', no: 'Close with a follow-up: “I’ll message you after Tuesday’s Encounter to see how it went.”' },
+      { k: 'Her agreement', any: ['does that work', 'how does that sound', 'is that ok', 'are you happy', 'what do you think', 'deal', 'okay with you', 'ok for you', 'agree', 'how about', 'shall we', 'would you', 'sounds good', 'together', 'okay?', 'ok?', 'right?', 'is it ok', 'can we', 'will you', 'are you ok with', 'can you commit'], need: 1, ok: 'You checked she agrees. Her commitment makes the plan stick.', no: 'Check her commitment: “Does that work for you?”' }
     ],
     model: 'I completely understand, evening shifts make 7 pm really hard. So let’s use your free mornings. I’ll book your Unit 43 Encounter for Tuesday at 11 am, and a Social Club on Saturday morning to keep your speaking going. For each unit you’ll have one Complementary Class too. I’ll message you after Tuesday’s Encounter to see how it went. Does that work for you?',
     refs: ['SOP_EDU', 'SOP_CC', 'SOP_ADV'] }); },
@@ -1736,11 +1741,11 @@ var KC_OPEN = {
   w6: function (el, api) { kcVoiceTask(el, api, { id: 'w_tala_celebrate', write: true, badge: 'Stage 6 · Your words', title: 'Celebrate Tala’s comeback', name: 'Tala', sub: 'Level 12 · Top month', voice: 'yasser',
     sit: 'Tala passed 4 Encounters this month with an average of 92% and is close to finishing Level 12. Write the message you send her to celebrate, and invite her to her End of Level Advising Session.',
     line: '🏆 4 Encounters passed this month · average 92%', ask: 'Your message to Tala',
-    minW: 25, maxW: 110, lenHint: '3–5 sentences',
+    minW: 18, maxW: 130, lenHint: '3–5 sentences',
     crit: [
       { k: 'Specific achievement', any: ['4 encounter', 'four encounter', 'for encounter', '92', 'level 12', 'l12', 'this month', 'top', 'passed', 'completed', 'average'], need: 2, ok: 'You named exactly what she achieved. Specific praise means more.', no: 'Be specific: “4 Encounters this month, with an average of 92%.”' },
-      { k: 'Recognise her effort', any: ['effort', 'hard work', 'worked', 'commitment', 'committed', 'dedication', 'proud', 'came back', 'comeback', 'kept going', 'determination', 'strong', 'crushed', 'consisten', 'great progress', 'fantastic progress'], need: 1, ok: 'You recognised her effort, not just the result.', no: 'Recognise the effort behind it: “You came back and kept going. That takes real commitment.”' },
-      { k: 'Look ahead to the next level', any: ['next level', 'level 13', 'next step', 'goal', 'keep it up', 'keep going', 'next'], need: 1, ok: 'You linked the win to her next goal.', no: 'Connect it to what is next: “You’re so close to Level 13!”' },
+      { k: 'Recognise her effort', any: ['effort', 'hard work', 'worked', 'commitment', 'committed', 'dedication', 'proud', 'came back', 'comeback', 'kept going', 'determination', 'strong', 'crushed', 'consisten', 'great progress', 'fantastic progress', 'great job', 'good job', 'good work', 'great work', 'doing great', 'doing so well', 'doing well', 'well done', 'keep up'], need: 1, ok: 'You recognised her effort, not just the result.', no: 'Recognise the effort behind it: “You came back and kept going. That takes real commitment.”' },
+      { k: 'Look ahead to the next level', any: ['next level', 'level 13', 'next step', 'goal', 'keep it up', 'keep up', 'keep going', 'continue', 'next', 'finish level', 'close to', 'almost'], need: 1, ok: 'You linked the win to her next goal.', no: 'Connect it to what is next: “You’re so close to Level 13!”' },
       { k: 'Invite to End of Level session (SOP)', any: ['end of level', 'level advising', 'advising', 'session', 'meet', 'book', 'appointment', 'chat'], need: 2, ok: 'You invited her to the End of Level Advising Session, as the SOP asks.', no: 'Invite her to her End of Level Advising Session and offer a time.' },
       { k: 'Warm and personal', any: [' tala', ' thala', ' talla', 'congratulations', 'congrats', 'well done', 'amazing', 'fantastic', 'brilliant', 'great job', 'wow', '🎉', '👏', '🌟'], need: 2, ok: 'Warm, personal and celebratory.', no: 'Use her name and a clear “Congratulations!”' }
     ],
@@ -1796,8 +1801,8 @@ function kcTalaScore(text, T) {
   var blame = ['you missed', 'no show', ' must ', 'affect your progress', 'why didn', 'why did you', 'penalty', 'warning', 'policy', 'rules', 'be more aware', 'not miss the class', 'you need to be more'].filter(function (w) { return t.indexOf(w) > -1; });
   T.checks.forEach(function (c) { var hit = c[1].concat(KC_TALA_SYN[c[0]] || []).some(function (w) { return t.indexOf(w) > -1; }); if (hit) { score += c[2]; good.push(c[3]); } else { if (words >= 8 && !blame.length) score += Math.round(c[2] * 0.3); tryx.push(c[4]); } });
   if (blame.length) { score -= 10; tryx.unshift('Avoid “' + blame[0].trim() + '”. Blame adds to her embarrassment.'); }
-  if (words < 5) { score -= 10; tryx.push('A bit short. Say one or two full sentences.'); }
-  return { score: Math.max(0, Math.min(100, score)), good: good, tryx: tryx };
+  if (words < 5) { score -= 5; tryx.push('A bit short. Say one or two full sentences.'); }
+  return { score: kcCurve(Math.max(0, Math.min(100, score)), words, blame.length > 0), good: good, tryx: tryx };
 }
 var KC_TALA_SYN = {
   'Warm start': ['hi ', 'hello', 'hey', 'how are you', 'no need for', 'that\'s okay', 'it\'s okay', 'its okay', 'thanks', 'we understand', 'completely understand', 'good to'],
