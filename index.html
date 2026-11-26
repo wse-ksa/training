@@ -1675,6 +1675,7 @@ function kcVoiceTask(el, api, V) {
         '<details style="margin-top:12px"><summary style="cursor:pointer;font-weight:700;color:#00335A">See a model answer</summary><div class="kc-msg me" style="max-width:100%;margin-top:8px">' + V.model + '</div></details>' + kcRefs(V.refs) + '</div>';
       res.innerHTML = h;
       KCAPI.save('voice', { id: V.id, text: text, score: R.score, source: R.source, tries: tries });
+      if (KC.retry) { an.style.display = 'none'; tx.disabled = true; mic.disabled = true; }   /* owner, 26 Nov 2026: one try only in retry mode */
       if (!api._vd) { api._vd = 1; kcXP(Math.round(R.score / 5), W ? 'writing challenge' : 'speaking challenge'); if (R.score >= 80) kcBadge('voice_' + V.id, W ? 'Golden pen' : 'Golden voice'); api.done(); }
       setTimeout(function () { res.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 150);   /* feedback now sits at the top of the reply card */
     }
@@ -1924,6 +1925,21 @@ window.kcStart = function (root, o) {
   var resume = p && !st.complete && p.sc > 0;
   if (resume) { ['name', 'role', 'pre', 'xp'].forEach(function (k) { if (p[k] != null && p[k] !== '') KC[k] = p[k]; }); if (p.mission) KC.mission = p.mission; if (p.badges) KC.badges = p.badges; }
   if (KC.role && !KC_ROLES[KC.role]) KC.role = '';
+  /* owner, 26 Nov 2026: one more try on an amber answer. Opens just that challenge; the answer is saved as a retry and the better score is kept */
+  var RT = { w_tala_wa: KC_OPEN.w1, s_tala_plan: KC_OPEN.s4, w_tala_celebrate: KC_OPEN.w6, v_noura: KC_VOICE.noura, v_tala: KC_VOICE.yasser };
+  if (o.retry && RT[o.retry]) {
+    KC.retry = o.retry; var sv = KCAPI.save;
+    KCAPI.save = function (kind, data) { if (kind !== 'voice') return; data = data || {}; data.retry = 1; sv(kind, data); };
+    kcBoot(root);
+    KC_FLAT = [{ ci: 1, si: 0, f: function (el, api) { var n = kcEl('div', 'kc-fb in', '↻ <b>Your one extra try.</b> Read the situation again and give your best answer. Your better score is kept.'); n.style.marginBottom = '12px'; el.appendChild(n); var w = kcEl('div'); el.appendChild(w); RT[o.retry](w, api); } }];
+    try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
+    KC.sc = 0; kcRender();
+    var xb = kcEl('button', 'kc-x', '✕'); xb.title = 'Close'; xb.onclick = function () { try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {} if (o.onClose) o.onClose(); };
+    kc$('.kc-top', root).appendChild(xb);
+    var nx = kc$('[data-next]', root); nx.textContent = 'Done ✓'; nx.onclick = function (e) { e.stopImmediatePropagation(); e.preventDefault(); if (o.onClose) o.onClose(); };
+    kc$('[data-back]', root).style.visibility = 'hidden';
+    return;
+  }
   kcBoot(root);
   var x = kcEl('button', 'kc-x', '✕'); x.title = 'Close (your progress is saved)'; x.onclick = function () { try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {} if (o.onClose) o.onClose(); };
   kc$('.kc-top', root).appendChild(x);
