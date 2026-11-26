@@ -1558,14 +1558,15 @@ function kcAnalyzeLocal(text, ctx) {
 }
 
 function kcVoiceTask(el, api, V) {
-  el.innerHTML = '<div class="kc-stage-h"><span class="kc-pill" style="background:#5B4BC4;color:#fff">🎙 VOICE CHALLENGE</span>' + (V.badge ? '<span class="kc-pill">' + V.badge + '</span>' : '') + '</div><h2 style="margin-top:10px">' + V.title + '</h2><p class="lead">' + V.sit + '</p>' +
+  var W = !!V.write;   /* owner, 26 Nov 2026: open-ended writing challenges reuse this screen without the mic */
+  el.innerHTML = '<div class="kc-stage-h"><span class="kc-pill" style="background:#5B4BC4;color:#fff">' + (W ? '✍️ WRITING CHALLENGE' : '🎙 SPEAKING CHALLENGE') + '</span>' + (V.badge ? '<span class="kc-pill">' + V.badge + '</span>' : '') + '</div><h2 style="margin-top:10px">' + V.title + '</h2><p class="lead">' + V.sit + '</p>' +
     '<div class="kc-grid kc-g2" style="align-items:start"><div><div class="kc-phone" style="width:min(340px,100%)"><div class="scr" style="height:300px"><div class="bar"><div class="av">' + V.name[0] + '</div><div>' + V.name + '<small>' + V.sub + '</small></div></div><div class="msgs"><div class="kc-msg them">' + V.line + '</div></div></div></div><div style="text-align:center;margin-top:10px"><button class="kc-btn ghost sm" data-hear>🔊 Hear ' + V.name + '</button></div></div>' +
-    '<div class="kc-card"><div data-res></div><h3>Your reply, in your own words</h3><p class="mute" style="font-size:13.5px">Press the mic and speak as if you were on the call. You can also type.</p><div class="kc-rec"><button class="kc-mic" data-mic title="Record">🎙</button><div class="w"><div class="st" data-st>Tap to record (up to 45 seconds)</div><div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div><div style="margin-top:6px"><button class="kc-btn ghost sm" data-howto style="padding:4px 10px">❓ How do I speak my reply?</button></div><div class="kc-f" style="margin-top:10px"><textarea data-tx placeholder="Your words will appear here…"></textarea></div><button class="kc-btn" data-an disabled>✨ Get feedback</button></div></div>';
+    '<div class="kc-card"><div data-res></div><h3>' + (V.ask || 'Your reply, in your own words') + '</h3><p class="mute" style="font-size:13.5px">' + (W ? 'Write it exactly as you would send it.' : 'Press the mic and speak as if you were on the call. You can also type.') + '</p><div class="kc-rec"' + (W ? ' style="display:none"' : '') + '><button class="kc-mic" data-mic title="Record">🎙</button><div class="w"><div class="st" data-st>Tap to record (up to 45 seconds)</div><div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div><div style="margin-top:6px' + (W ? ';display:none' : '') + '"><button class="kc-btn ghost sm" data-howto style="padding:4px 10px">❓ How do I speak my reply?</button></div><div class="kc-f" style="margin-top:10px"><textarea data-tx placeholder="' + (W ? 'Type your message here…' : 'Your words will appear here…') + '"' + (W ? ' style="min-height:130px"' : '') + '></textarea></div><button class="kc-btn" data-an disabled>✨ Get feedback</button></div></div>';
   var tx = kc$('[data-tx]', el), an = kc$('[data-an]', el), mic = kc$('[data-mic]', el), st = kc$('[data-st]', el), rec = kc$('.kc-rec', el), res = kc$('[data-res]', el), tries = 0;
   kc$('[data-hear]', el).onclick = function () { var w = KC.sound; KC.sound = true; kcSpeak(V.line, V.voice || 'yasser', function () { KC.sound = w; }); };
   kc$('[data-howto]', el).onclick = function () { kcMicGuide(function () { tx.focus(); }); };
   tx.oninput = function () { an.disabled = !tx.value.trim(); };   /* owner, 25 Nov 2026: any reply can get feedback */
-  mic.classList.add('call'); var stopCall = function () { mic.classList.remove('call'); }; mic.addEventListener('click', stopCall); tx.addEventListener('input', function () { if (tx.value.trim()) stopCall(); });   /* owner, 25 Nov 2026: pulse the mic when it is the staff member's turn */
+  if (!W) mic.classList.add('call'); var stopCall = function () { mic.classList.remove('call'); }; mic.addEventListener('click', stopCall); tx.addEventListener('input', function () { if (tx.value.trim()) stopCall(); });   /* owner, 25 Nov 2026: pulse the mic when it is the staff member's turn */
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition, r = null, on = false, base = '', stopT;
   var fp = document.featurePolicy || document.permissionsPolicy, micOK = !!SR && !(fp && fp.allowsFeature && !fp.allowsFeature('microphone'));
   function dictate() { st.innerHTML = '🎤 The recording window could not open here. <b>The cursor is now in the reply box:</b> press <b>Windows + H</b> (PC) or the 🎤 on your phone keyboard, and speak. Or just type.'; tx.placeholder = 'Click here first, then press Windows + H to speak, or type your reply'; tx.focus(); tx.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
@@ -1595,19 +1596,77 @@ function kcVoiceTask(el, api, V) {
         '<details style="margin-top:12px"><summary style="cursor:pointer;font-weight:700;color:#00335A">See a model answer</summary><div class="kc-msg me" style="max-width:100%;margin-top:8px">' + V.model + '</div></details>' + kcRefs(V.refs) + '</div>';
       res.innerHTML = h;
       KCAPI.save('voice', { id: V.id, text: text, score: R.score, source: R.source, tries: tries });
-      if (!api._vd) { api._vd = 1; kcXP(Math.round(R.score / 5), 'voice challenge'); if (R.score >= 80) kcBadge('voice_' + V.id, 'Golden voice'); api.done(); }
+      if (!api._vd) { api._vd = 1; kcXP(Math.round(R.score / 5), W ? 'writing challenge' : 'speaking challenge'); if (R.score >= 80) kcBadge('voice_' + V.id, W ? 'Golden pen' : 'Golden voice'); api.done(); }
       setTimeout(function () { res.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 150);   /* feedback now sits at the top of the reply card */
     }
-    var local = function () { var R = kcAnalyzeLocal(text, ctx); setTimeout(function () { show(R); }, 900); };
+    var local = function () { var R = V.crit ? kcRubric(text, V) : kcAnalyzeLocal(text, ctx); setTimeout(function () { show(R); }, 900); };
     try {
-      if (typeof KC_ANALYZE === 'function') {
+      if (typeof KC_ANALYZE === 'function' && !V.crit) {
         KC_ANALYZE(text, JSON.stringify(ctx)).then(function (j) { try { var R = j ? JSON.parse(j) : null; if (R && R.criteria) { R.source = 'ai'; R.words = R.words || text.trim().split(/\s+/).length; show(R); } else local(); } catch (e) { local(); } }, local);
         setTimeout(function () { if (!shown) local(); }, 20000);
       } else local();
     } catch (e) { local(); }
   };
-  api.hint('Record or type your reply');
+  api.hint(W ? 'Write your message' : 'Record or type your reply');
 }
+
+/* ===== Owner, 26 Nov 2026: open-ended speaking and writing challenges in "Bring Tala back", scored against SOP criteria ===== */
+function kcRubric(text, V) {
+  var t = ' ' + text.toLowerCase().replace(/[’']/g, "'").replace(/\s+/g, ' ') + ' ', words = text.trim().split(/\s+/).filter(Boolean).length;
+  var C = V.crit.map(function (c) {
+    var hit = (c.any || []).filter(function (w) { return t.indexOf(w) > -1; }), bad = (c.not || []).filter(function (w) { return t.indexOf(w) > -1; });
+    var s = c.not ? (bad.length ? Math.max(0, 20 - bad.length * 10) : 20) : Math.min(20, Math.round(hit.length / (c.need || 2) * 20));
+    return { k: c.k, s: s, tip: (c.not ? !bad.length : s >= 14) ? c.ok : (c.not && bad.length ? c.no.replace('{w}', bad[0].trim()) : c.no) };
+  });
+  var score = C.reduce(function (a, c) { return a + c.s; }, 0), extra = [];
+  if (words < (V.minW || 15)) { score = Math.max(0, score - 10); extra.push('A bit short. Aim for ' + (V.lenHint || '3–5 sentences') + '.'); }
+  if (words > (V.maxW || 120)) { score = Math.max(0, score - 10); extra.push('Quite long. Keep it focused, about ' + (V.maxW || 120) + ' words at most.'); }
+  return { score: score, criteria: C, extra: extra, words: words, source: 'rubric' };
+}
+var KC_OPEN = {
+  /* writing, after Stage 1 (Detect) */
+  w1: function (el, api) { kcVoiceTask(el, api, { id: 'w_tala_wa', write: true, badge: 'Stage 1 · Your words', title: 'Write the WhatsApp to Tala', name: 'Tala', sub: 'Last seen: yesterday', voice: 'yasser',
+    sit: 'You chose the best move: a personal message within 24 hours. Now write it yourself. Tala missed her 7 pm Encounter yesterday, her first no-show ever. Her last Encounters were all above 90%.',
+    line: '👻 Booked Encounter, Unit 43 · did not show up (19:00)', ask: 'Your WhatsApp message to Tala',
+    minW: 20, maxW: 90, lenHint: '3–4 short sentences (about 40–70 words)',
+    crit: [
+      { k: 'Personal & warm', any: [' tala', 'hope you', 'missed you', 'hi ', 'hello', 'dear', 'thank'], need: 2, ok: 'Personal and warm: her name and a friendly opening.', no: 'Start with her name and a warm line, e.g. “Hi Tala, we missed you yesterday!”' },
+      { k: 'Recognise her progress', any: ['93', '90', 'great', 'excellent', 'strong', 'well done', 'proud', 'doing so well', 'amazing', 'scores', 'progress'], need: 1, ok: 'You reminded her of her real progress. That builds confidence.', no: 'Mention a real win: her Encounter scores above 90%.' },
+      { k: 'Open question (listen first)', any: ['?', 'is everything', 'how are', 'what ', 'how can i', 'anything'], need: 2, ok: 'You asked, not told. SOP advising starts with question & listen.', no: 'Ask one open question: “Is everything OK?” or “What has changed?”' },
+      { k: 'No blame', not: ['you missed', 'no-show', 'no show', 'must', 'have to', 'should', 'policy', 'rules', 'penalt', 'warning', 'why didn'], ok: 'No blame or pressure. Exactly right for a first miss.', no: 'Avoid “{w}”. Blame makes students go quiet.' },
+      { k: 'Offer a next step', any: ['book', 'time', 'slot', 'help', 'call', 'reschedul', 'tomorrow', 'this week', 'morning', 'evening', 'let me'], need: 2, ok: 'You offered to do the work: a new time or a quick call.', no: 'Offer something concrete: “Shall I book you a better time this week?”' }
+    ],
+    model: 'Hi Tala 😊 We missed you in yesterday’s Encounter! Your last Encounters were all above 90%, so you’re doing really well. Is everything OK? If 7 pm doesn’t suit you any more, tell me a better time and I’ll book it for you.',
+    refs: ['SOP_FU', 'SOP_ADV', 'G_EARLY'] }); },
+  /* speaking, after Stage 4 (Plan) */
+  s4: function (el, api) { kcVoiceTask(el, api, { id: 's_tala_plan', badge: 'Stage 4 · Say it out loud', title: 'Agree the comeback plan with Tala', name: 'Tala', sub: 'Educational Advising Session', voice: 'yasser',
+    sit: 'In the advising session Tala tells you evenings are impossible now, but mornings before 1 pm on Tuesdays and Saturdays are free. She is on Unit 43. Speak the plan you agree with her, as you would say it in the session.',
+    line: 'OK… so what do we do now? I really don’t want to fall behind again.', ask: 'Your plan, in your own words',
+    minW: 35, maxW: 160, lenHint: 'about 30–60 seconds of speaking',
+    crit: [
+      { k: 'Reflect the cause', any: ['evening', 'shift', 'work', 'busy', 'understand', 'sounds like', 'makes sense', 'i hear'], need: 2, ok: 'You named the real cause, so the plan fits her life.', no: 'Start by reflecting the cause: “Evenings are hard with your shifts, so let’s use your mornings.”' },
+      { k: 'Specific booking', any: ['tuesday', 'saturday', 'morning', ' 9', ' 10', ' 11', ' am ', ' am,', ' am.', 'a.m', 'unit 43', 'encounter', 'book'], need: 3, ok: 'Specific day, time and unit. A plan she can actually follow.', no: 'Be specific: the day, the time and the unit, e.g. “Tuesday 11 am, Unit 43 Encounter.”' },
+      { k: 'Support class per unit (SOP)', any: ['complementary', 'social club', ' cc ', ' cc,', 'extra class', 'practice class'], need: 1, ok: 'You added a Complementary Class or Social Club, as the SOP recommends per unit.', no: 'Add one Complementary Class and/or Social Club per unit, as the SOP recommends.' },
+      { k: 'Follow-up date', any: ['check in', 'follow up', 'follow-up', 'call you', 'message you', 'next week', 'after', 'i’ll check', "i'll check", 'see how'], need: 1, ok: 'You set a follow-up. The SOP advising steps end with follow-up.', no: 'Close with a follow-up: “I’ll message you after Tuesday’s Encounter to see how it went.”' },
+      { k: 'Her agreement', any: ['does that work', 'how does that sound', 'is that ok', 'are you happy', 'what do you think', 'deal', 'okay with you', 'ok for you', 'agree'], need: 1, ok: 'You checked she agrees. Her commitment makes the plan stick.', no: 'Check her commitment: “Does that work for you?”' }
+    ],
+    model: 'I completely understand, evening shifts make 7 pm really hard. So let’s use your free mornings. I’ll book your Unit 43 Encounter for Tuesday at 11 am, and a Social Club on Saturday morning to keep your speaking going. For each unit you’ll have one Complementary Class too. I’ll message you after Tuesday’s Encounter to see how it went. Does that work for you?',
+    refs: ['SOP_EDU', 'SOP_CC', 'SOP_ADV'] }); },
+  /* writing, after Stage 6 (Celebrate) */
+  w6: function (el, api) { kcVoiceTask(el, api, { id: 'w_tala_celebrate', write: true, badge: 'Stage 6 · Your words', title: 'Celebrate Tala’s comeback', name: 'Tala', sub: 'Level 12 · Top month', voice: 'yasser',
+    sit: 'Tala passed 4 Encounters this month with an average of 92% and is close to finishing Level 12. Write the message you send her to celebrate, and invite her to her End of Level Advising Session.',
+    line: '🏆 4 Encounters passed this month · average 92%', ask: 'Your message to Tala',
+    minW: 25, maxW: 110, lenHint: '3–5 sentences',
+    crit: [
+      { k: 'Specific achievement', any: ['4 encounter', 'four encounter', '92', 'level 12', 'this month', 'top', 'passed'], need: 2, ok: 'You named exactly what she achieved. Specific praise means more.', no: 'Be specific: “4 Encounters this month, with an average of 92%.”' },
+      { k: 'Recognise her effort', any: ['effort', 'hard work', 'worked', 'commitment', 'dedication', 'proud', 'came back', 'comeback', 'kept going', 'determination'], need: 1, ok: 'You recognised her effort, not just the result.', no: 'Recognise the effort behind it: “You came back and kept going. That takes real commitment.”' },
+      { k: 'Look ahead to the next level', any: ['next level', 'level 13', 'next step', 'goal', 'keep it up', 'keep going', 'next'], need: 1, ok: 'You linked the win to her next goal.', no: 'Connect it to what is next: “You’re so close to Level 13!”' },
+      { k: 'Invite to End of Level session (SOP)', any: ['end of level', 'advising', 'session', 'meet', 'book you', 'appointment', 'chat'], need: 2, ok: 'You invited her to the End of Level Advising Session, as the SOP asks.', no: 'Invite her to her End of Level Advising Session and offer a time.' },
+      { k: 'Warm and personal', any: [' tala', 'congratulations', 'congrats', 'well done', 'amazing', 'fantastic', 'brilliant', '🎉', '👏', '🌟'], need: 2, ok: 'Warm, personal and celebratory.', no: 'Use her name and a clear “Congratulations!”' }
+    ],
+    model: 'Congratulations, Tala! 🎉 4 Encounters this month with an average of 92%. You came back and kept going, and that takes real commitment. You’re so close to finishing Level 12! Let’s book your End of Level Advising Session to celebrate and plan Level 13. Does Tuesday at 11 am work?',
+    refs: ['SOP_CEL', 'SOP_EOL'] }); }
+};
 
 var KC_VOICE = {
   yasser: function (el, api) { kcVoiceTask(el, api, { id: 'v_yasser', badge: 'Mission bonus', title: 'Now say it your way', name: 'Tala', sub: 'Thu 21 Aug · you call her', voice: 'yasser',
@@ -1732,7 +1791,7 @@ var KC_CH_PARTS = { w: KC_CH[0].s, y: KC_CH[1].s, why: KC_CH[2].s, radar: KC_CH[
   var realIntro = function (el, api) { realStory(el, api); var h = kc$('h2', el); if (h) h.textContent = 'What really happened to Tala'; var l = kc$('.lead', el); if (l) l.innerHTML = 'This is Tala’s <b>real</b> data, from her Progress page and calendar. Tap each month and compare it with your mission.'; };
   KC_CH = [
     { t: 'Welcome', s: [P.w[0], P.w[1]] },
-    { t: 'Mission: Tala', s: [kcBriefing, P.y[0], KC_MISSION.s1, KC_MISSION.s2, KC_MISSION.s3, KC_VOICE.yasser, KC_MISSION.s4, KC_MISSION.s5, KC_MISSION.s6, KC_MISSION.result, realIntro, insight] },
+    { t: 'Mission: Tala', s: [kcBriefing, P.y[0], KC_MISSION.s1, KC_OPEN.w1, KC_MISSION.s2, KC_MISSION.s3, KC_VOICE.yasser, KC_MISSION.s4, KC_OPEN.s4, KC_MISSION.s5, KC_MISSION.s6, KC_OPEN.w6, KC_MISSION.result, realIntro, insight] },
     { t: 'Why students stop', s: P.why },
     { t: 'Your toolkit', s: [P.radar[0], P.radar[1], P.radar[2], P.touch[0], P.touch[1]] },
     { t: 'Side missions', s: [sideIntro, P.cases[2], KC_VOICE.noura, P.cases[3], P.cases[4]] },
