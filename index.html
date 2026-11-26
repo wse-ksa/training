@@ -1565,15 +1565,15 @@ function kcMicGuide(onClose) {
   o.onclick = function (e) { if (e.target === o) { o.remove(); onClose && onClose(); } };
 }
 function kcAnalyzeLocal(text, ctx) {
-  var t = ' ' + text.toLowerCase().replace(/[’']/g, "'") + ' ', words = text.trim().split(/\s+/).filter(Boolean).length;
+  var t = ' ' + text.toLowerCase().replace(/[’']/g, "'").replace(/[-–—“”"]/g, ' ').replace(/\s+/g, ' ') + ' ', words = text.trim().split(/\s+/).filter(Boolean).length;
   function any(list) { return list.filter(function (w) { return t.indexOf(w) > -1; }); }
-  var name = any([' ' + ctx.name.toLowerCase()]);
+  var nm = ctx.name.toLowerCase(), name = any([' ' + nm].concat(nm === 'noura' ? [' nora', ' nura', ' norah', ' noora'] : nm === 'tala' ? [' tara', ' thala', ' talla', ' chala', ' talia'] : []));
   var warm = any(['thank', 'great', 'glad', 'missed you', 'welcome', 'no problem', 'no worries', "don't worry", 'happy', 'good to', 'nice to', 'well done', 'proud', 'amazing', 'excellent', 'hope you']);
-  var blame = any(['you missed', 'no-show', 'no show', 'rules', ' must ', 'have to', ' should ', 'affect your progress', 'affects your progress', 'penalty', 'warning', 'again?', 'why didn', "why didn't", 'why did you', 'policy', 'service manager will', 'contract will']);
-  var openq = any(['what ', 'how ', 'when ', 'which ', 'is everything', 'can you tell', 'what has', "what's", 'how can i', 'would you like', 'what would']);
+  var blame = any(['you missed', 'no-show', 'no show', 'rules', ' must ', 'have to', ' should ', 'affect your progress', 'affects your progress', 'penalty', 'warning', 'again?', 'why didn', "why didn't", 'why did you', 'policy', 'service manager will', 'contract will']).filter(function (w) { return [' should ', 'have to'].indexOf(w) < 0; });
+  var openq = any(['what ', 'how ', 'when ', 'which ', 'is everything', 'can you tell', 'what has', "what's", 'how can i', 'would you like', 'what would', 'is there', 'are you', 'do you', 'can you', 'could you', 'how about', 'what about', 'tell me', 'let me know', 'anything']);
   var hasQ = text.indexOf('?') > -1 || openq.length > 0;
-  var emp = any(['understand', 'sounds like', 'must be', 'tough', ' hard', 'busy', 'i hear', 'makes sense', 'i know', 'difficult', 'completely normal', "that's normal", 'it happens', 'totally fine']);
-  var next = any(['book', ' slot', ' time ', 'morning', 'evening', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'saturday', 'online', 'i can ', 'let me', 'help you', 'together', 'call you', 'message you', 'social club', 'complementary', 'advising', 'plan']);
+  var emp = any(['understand', 'sounds like', 'must be', 'tough', ' hard', 'busy', 'i hear', 'makes sense', 'i know', 'difficult', 'completely normal', "that's normal", 'it happens', 'totally fine', 'normal', "it's okay", 'okay', 'alright', 'many students', 'everyone', 'it happens', 'repeat is', 'no problem', 'sorry']);
+  var next = any(['book', ' slot', ' time ', 'morning', 'evening', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'saturday', 'online', 'i can ', 'let me', 'help you', 'together', 'call you', 'message you', 'social club', 'complementary', 'complimentary', 'advising', 'plan', 'session', 'class', 'review', 'call you', 'teacher', 'coach']);
   var win = any(ctx.wins);
   var C = [
     { k: 'Personal & warm', s: Math.min(20, (name.length ? 10 : 0) + Math.min(10, warm.length * 5)), good: name.concat(warm), tip: name.length ? (warm.length ? 'You used their name and a warm tone.' : 'Good use of the name. Add a warm phrase like “we missed you” or “thanks for picking up”.') : 'Use the student’s name early. It changes how the whole message lands.' },
@@ -1582,6 +1582,7 @@ function kcAnalyzeLocal(text, ctx) {
     { k: 'Empathy', s: Math.min(20, emp.length * 10), good: emp, tip: emp.length ? 'You showed you understand. Summarising their situation builds trust.' : 'Reflect their situation: “Evening shifts sound tough” or “That’s completely normal.”' },
     { k: 'Clear next step', s: Math.min(20, next.length * 7), good: next, tip: next.length ? 'You offered something concrete. Even better: book it during the call.' : 'Offer one concrete thing: a time, a booking, a call. You do the work.' }
   ];
+  if (words >= 8 && !blame.length) C.forEach(function (c) { if (c.s < 6) c.s = 6; });   /* owner, 26 Nov 2026: partial credit for a sensible spoken reply */
   var score = C.reduce(function (a, c) { return a + c.s; }, 0);
   var extra = [];
   if (win.length) { score = Math.min(100, score + 8); extra.push('⭐ You mentioned a real win (“' + win[0].trim() + '”). That builds confidence.'); }
@@ -1755,17 +1756,33 @@ var KC_TALA = [
   { line: 'Okay… that sounds doable. But what if I miss it again?', goal: 'Agree a follow-up and a small first step, and end on encouragement.',
     checks: [['Follow-up', ['message you', 'call you', 'remind', 'check in', 'follow up', 'whatsapp', 'monday', 'text you'], 40, 'You agreed when you will follow up.', 'Promise a follow-up: “I’ll message you on Monday.”'],
       ['Small first step', ['lesson 1', 'lesson', 'small', 'one step', 'step by step', 'first', 'just one'], 25, 'You gave her a small first step.', 'Give one small step: “Just Lesson 1 before Tuesday.”'],
-      ['Encouragement', ["you've got", 'you can', "i'm here", "we're here", 'together', 'proud', 'believe', 'support', 'no problem'], 35, 'You ended on encouragement.', 'End on encouragement: “You’ve got this, and I’m here to help.”']],
+      ['Encouragement', ["you've got", 'you can', "i'm here", "we're here", 'we are here', 'together', 'proud', 'believe', 'support', 'no problem', "don't worry", 'keep up', 'good student', 'give up', 'positive', "that's okay", 'we understand', 'you will', "you'll"], 35, 'You ended on encouragement.', 'End on encouragement: “You’ve got this, and I’m here to help.”']],
     model: 'No problem, we’ll do it together. I’ll message you on Monday to see how Lesson 1 went and remind you before Tuesday. You’ve got this, Tala.' }
 ];
 function kcTalaScore(text, T) {
-  var t = ' ' + text.toLowerCase().replace(/[’']/g, "'") + ' ', words = text.trim().split(/\s+/).filter(Boolean).length, score = 0, good = [], tryx = [];
-  T.checks.forEach(function (c) { var hit = c[1].some(function (w) { return t.indexOf(w) > -1; }); if (hit) { score += c[2]; good.push(c[3]); } else tryx.push(c[4]); });
-  var blame = ['you missed', 'no-show', 'no show', ' must ', 'have to', ' should ', 'affect your progress', 'why didn', 'why did you', 'penalty', 'warning', 'policy', 'rules'].filter(function (w) { return t.indexOf(w) > -1; });
-  if (blame.length) { score -= 20; tryx.unshift('Avoid “' + blame[0].trim() + '”. Blame adds to her embarrassment.'); }
-  if (words < 5) { score -= 15; tryx.push('A bit short. Say one or two full sentences.'); }
+  /* owner, 26 Nov 2026: easier, fairer scoring for spoken replies: speech-to-text has no punctuation and mishears words, so wording is matched loosely, sensible replies get partial credit, and only real blame loses points */
+  var t = ' ' + text.toLowerCase().replace(/[’']/g, "'").replace(/[-–—“”"]/g, ' ').replace(/\s+/g, ' ') + ' ', words = text.trim().split(/\s+/).filter(Boolean).length, score = 0, good = [], tryx = [];
+  var blame = ['you missed', 'no show', ' must ', 'affect your progress', 'why didn', 'why did you', 'penalty', 'warning', 'policy', 'rules', 'be more aware', 'not miss the class', 'you need to be more'].filter(function (w) { return t.indexOf(w) > -1; });
+  T.checks.forEach(function (c) { var hit = c[1].concat(KC_TALA_SYN[c[0]] || []).some(function (w) { return t.indexOf(w) > -1; }); if (hit) { score += c[2]; good.push(c[3]); } else { if (words >= 8 && !blame.length) score += Math.round(c[2] * 0.3); tryx.push(c[4]); } });
+  if (blame.length) { score -= 10; tryx.unshift('Avoid “' + blame[0].trim() + '”. Blame adds to her embarrassment.'); }
+  if (words < 5) { score -= 10; tryx.push('A bit short. Say one or two full sentences.'); }
   return { score: Math.max(0, Math.min(100, score)), good: good, tryx: tryx };
 }
+var KC_TALA_SYN = {
+  'Warm start': ['hi ', 'hello', 'hey', 'how are you', 'no need for', 'that\'s okay', 'it\'s okay', 'its okay', 'thanks', 'we understand', 'completely understand', 'good to'],
+  'Open question': ['is there', 'are you', 'do you', 'does ', 'can you', 'could you', 'would you', 'tell me', 'let me know', 'let\'s see', 'anything', 'what would'],
+  'Empathy': ['exhausting', 'tiring', 'busy', 'nuts', 'hectic', 'we understand', 'i understand', 'must be', 'sorry', 'it\'s okay', 'it happens', 'no worries'],
+  'Find a better time': ['what time', 'suitable', 'suits you', 'convenient', 'mornings', 'free and fresh', 'better for you', 'fits you', 'works for you', 'when are you', 'specific time'],
+  'It’s normal': ['okay', 'alright', 'it happens', 'everybody', 'everyone', 'don\'t feel', 'no need', 'embarrass', 'quite alright', 'happens to', 'we are here', 'we\'re here', 'welcome'],
+  'A real win': ['good job', 'great job', 'did well', 'you did', 'last encounter', 'worked so hard', 'achieve', 'good student', 'percent'],
+  'Encouragement': ['help you', 'back on track', 'happy to help', 'support', 'we\'re here', 'we are here', 'refresh', 'together', 'easy'],
+  'Day and time': [' a.m', 'a m ', 'tuesday', 'saturday'],
+  'Book it now': ['schedule', 'set up', 'arrange', 'available', 'how about', 'what if we', 'why don\'t we', 'i\'m looking', 'we have'],
+  'The class': [' cc', 'encounter', 'social', 'complement', 'complimentary'],
+  'Follow-up': ['follow up', 'day before', 'before the class', 'send you', 'message', 'check how', 'check with you', 'contact you', 'reach out', 'let us know', 'let me know', 'in advance', '24 hours'],
+  'Small first step': ['multimedia', 'review', 'workbook', 'little', 'one class', 'one lesson', 'ease', 'start with'],
+  'Encouragement ': []
+};
 function kcVoiceConvo(el, api) {
   var N = KC_TALA.length, turn = 0, scores = [], texts = [];
   el.innerHTML = '<div class="kc-stage-h"><span class="kc-pill" style="background:#5B4BC4;color:#fff">🎙 VOICE CHALLENGE</span><span class="kc-pill">Mission bonus</span></div><h2 style="margin-top:10px">Now have the call, in your own words</h2><p class="lead">Real calls don’t come with options. Talk to Tala for <b>5 replies</b>. After each reply you get instant feedback, then Tala answers.</p>' +
