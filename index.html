@@ -511,22 +511,24 @@ function kcRender() {
   KCAPI.save('progress', { sc: KC.sc, of: KC_FLAT.length, ch: it.ci, chapter: ch.t, xp: KC.xp, role: KC.role, name: KC.name, pre: KC.pre, mission: KC.mission, badges: KC.badges });
 }
 /* owner, 26 Nov 2026: every screen fits the window (no scrolling to reach Continue): shrink the screen content when it is taller than the space between the top bar and the bottom bar */
-function kcFit() {
+function kcFit(grow) {
   var scr = kc$('.kc-scr'); if (!scr) return;
   var top = kc$('.kc-top'), nav = kc$('.kc-nav'), wrap = kc$('.kc-wrap');
   var H = (KC._scroller ? KC._scroller.clientHeight : window.innerHeight) - (top ? top.offsetHeight : 0) - (nav ? nav.offsetHeight : 0) - 34;
   var z0 = parseFloat(scr.style.zoom) || 1, h = scr.getBoundingClientRect().height / z0;
   if (window.innerWidth < 700 || !h) { scr.style.zoom = ''; return; }   /* phones keep normal size and scroll */
-  var z = Math.max(0.5, Math.min(1, H / h)); z = Math.round(z * 100) / 100;
-  if (Math.abs(z - z0) > 0.01) scr.style.zoom = z === 1 ? '' : z;
+  var z = Math.max(0.72, Math.min(1, H / h)); z = Math.round(z * 100) / 100;
+  /* owner, 26 Nov 2026: the page flashed because the zoom kept switching between two values (zooming changes the layout, which changed the zoom again). Within a screen the zoom now only ever goes down, by at least 2%; it can grow again only when the window is resized or a new screen opens. */
+  if (!grow && z > z0) return;
+  if (Math.abs(z - z0) >= 0.02 || (grow && z !== z0)) scr.style.zoom = z === 1 ? '' : z;
 }
 function kcFitWatch(scr) {
   var t; var go = function () { clearTimeout(t); t = setTimeout(kcFit, 60); };
   try { if (KC._fro) KC._fro.disconnect(); KC._fro = new ResizeObserver(go); Array.prototype.forEach.call(scr.children, function (c) { KC._fro.observe(c); }); KC._fro.observe(scr); } catch (e) {}
   try { if (KC._fmo) KC._fmo.disconnect(); KC._fmo = new MutationObserver(function () { go(); try { Array.prototype.forEach.call(scr.children, function (c) { KC._fro.observe(c); }); } catch (e) {} }); KC._fmo.observe(scr, { childList: true, subtree: true }); } catch (e) {}
-  [0, 300, 1200].forEach(function (d) { setTimeout(kcFit, d); });
+  [0, 300, 1200].forEach(function (d) { setTimeout(function () { kcFit(d === 0); }, d); });
 }
-window.addEventListener('resize', function () { clearTimeout(KC._frt); KC._frt = setTimeout(kcFit, 120); });
+window.addEventListener('resize', function () { clearTimeout(KC._frt); KC._frt = setTimeout(function () { kcFit(true); }, 120); });
 function kcNext() { if (KC.sc < KC_FLAT.length - 1) { KC.sc++; kcRender(); } }
 function kcBack() { if (KC.sc > 0) { KC.sc--; kcRender(); } }
 function kcBoot(root) {
@@ -632,7 +634,7 @@ function (el, api) {
     var s = stops[i]; kc$$('button', tl).forEach(function (x, k) { x.classList.toggle('on', k === i); });
     v.innerHTML = '';
     if (!s.img) { v.appendChild(kcEl('div', 'kc-card kc-scr', s.t)); mark(i); }
-    else { kcSpot(v, KC_IMG[s.img], s.W, s.H, s.steps, function () { mark(i); }); }
+    else { mark(i); kcSpot(v, KC_IMG[s.img], s.W, s.H, s.steps, function () { if (i + 1 < stops.length) show(i + 1); }); }   /* owner, 26 Nov 2026: a month counts as explored as soon as it is opened; Done moves on to the next month */
   }
   function mark(i) {
     seen[i] = 1; kc$$('button', tl)[i].classList.add('seen');
