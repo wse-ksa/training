@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to install the WSE Staff Portal app</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#20325A">
+<link rel="icon" href="../icon-192.png">
+<style>
+*{box-sizing:border-box}
+:root{--navy:#20325A;--ink:#14213a;--mute:#5d6b80;--line:#dbe3ee;--soft:#eef2f9}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#f4f7fb;color:var(--ink)}
+header{background:var(--navy);color:#fff;padding:18px 16px;text-align:center}
+header h1{margin:0;font-size:20px}
+header p{margin:4px 0 0;font-size:13.5px;opacity:.85}
+main{max-width:720px;margin:0 auto;padding:16px}
+.tabs{display:flex;gap:8px;justify-content:center;margin-bottom:14px}
+.tabs button{font:inherit;font-weight:700;font-size:14.5px;padding:10px 18px;border-radius:999px;border:2px solid var(--navy);background:#fff;color:var(--navy);cursor:pointer}
+.tabs button.on{background:var(--navy);color:#fff}
+.cap{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;display:flex;gap:12px;align-items:center;min-height:64px}
+.cap .n{flex:none;width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+.cap b{display:block;font-size:16px;color:var(--navy)}
+.cap span{font-size:13.5px;color:var(--mute)}
+.stage{position:relative;margin:14px auto 0;background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 12px;overflow:hidden;display:flex;justify-content:center;min-height:600px;align-items:center}
+.stage.desk{min-height:400px}
+.dim{position:absolute;border-radius:12px;box-shadow:0 0 0 2000px rgba(20,33,58,.42);border:3px solid #fff;outline:3px solid var(--navy);transition:all .7s cubic-bezier(.4,0,.2,1);pointer-events:none;opacity:0;z-index:5}
+.lab{position:absolute;background:var(--navy);color:#fff;font-weight:700;font-size:13px;padding:6px 12px;border-radius:999px;white-space:nowrap;transition:all .7s cubic-bezier(.4,0,.2,1);pointer-events:none;opacity:0;z-index:6;transform:translateX(-50%)}
+.ptr{position:absolute;width:30px;height:30px;z-index:7;transition:left .9s cubic-bezier(.4,0,.2,1),top .9s cubic-bezier(.4,0,.2,1);pointer-events:none;left:50%;top:92%}
+.ptr svg{width:30px;height:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+.ptr i{position:absolute;left:-9px;top:-9px;width:28px;height:28px;border-radius:50%;border:3px solid var(--navy);opacity:0}
+.ptr.tap i{animation:tap .7s ease-out}
+@keyframes tap{0%{opacity:.9;transform:scale(.4)}100%{opacity:0;transform:scale(1.9)}}
+.ctl{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px}
+.ctl button{font:inherit;font-weight:700;border:2px solid var(--navy);background:#fff;color:var(--navy);border-radius:10px;padding:9px 14px;cursor:pointer;min-width:44px}
+.ctl button.p{background:var(--navy);color:#fff;min-width:96px}
+.dots{display:flex;gap:6px}
+.dots i{width:9px;height:9px;border-radius:50%;background:#c5d0de}
+.dots i.on{background:var(--navy);width:22px;border-radius:6px}
+.cta{display:block;text-align:center;margin:18px auto 6px;background:var(--navy);color:#fff;text-decoration:none;font-weight:700;padding:14px;border-radius:12px;max-width:360px}
+/* ---------- phone ---------- */
+.phone{width:262px;height:540px;border-radius:38px;background:#111a2c;padding:10px;position:relative}
+.scr{width:100%;height:100%;border-radius:29px;background:#f4f7fb;position:relative;overflow:hidden}
+.sb{height:30px;display:flex;justify-content:space-between;align-items:center;padding:0 20px;font-size:11px;font-weight:700}
+.notch{position:absolute;top:6px;left:50%;width:70px;height:18px;background:#111a2c;border-radius:12px;transform:translateX(-50%)}
+.pg{padding:26px 16px 0;text-align:center}
+.pg img,.mini img{width:58px;height:58px;border-radius:14px}
+.pg h3{margin:8px 0 2px;font-size:15px;color:var(--navy)}
+.pg p{margin:0;font-size:10.5px;color:var(--mute)}
+.pg .box{margin-top:12px;background:var(--soft);border-radius:10px;height:74px}
+.pg .bt{margin-top:10px;border:2px solid var(--navy);border-radius:9px;height:30px}
+.saf{position:absolute;left:0;right:0;bottom:0;background:#e9edf3;border-top:1px solid #d3dae5;padding:8px 10px 14px}
+.url{background:#fff;border-radius:10px;height:32px;display:flex;align-items:center;justify-content:center;font-size:11.5px;color:var(--ink);gap:5px}
+.tb{display:flex;justify-content:space-between;align-items:center;padding:10px 8px 0;color:var(--navy)}
+.tb svg{width:21px;height:21px}
+.sheet{position:absolute;left:0;right:0;bottom:0;height:330px;background:#f4f6f9;border-radius:16px 16px 0 0;transform:translateY(105%);transition:transform .55s cubic-bezier(.4,0,.2,1);padding:12px;box-shadow:0 -6px 24px rgba(0,0,0,.18);z-index:2}
+.sheet .hd{display:flex;gap:8px;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.sheet .hd img{width:34px;height:34px;border-radius:8px}
+.sheet .hd b{font-size:12px}.sheet .hd small{display:block;font-size:10px;color:var(--mute)}
+.rows{margin-top:10px;background:#fff;border-radius:11px;overflow:hidden}
+.rows div{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;font-size:12.5px;border-bottom:1px solid #eef1f5}
+.rows div:last-child{border:0}
+.rows svg{width:17px;height:17px;color:var(--navy)}
+.adddlg{position:absolute;inset:30px 0 0 0;background:#f4f6f9;border-radius:16px 16px 0 0;transform:translateY(105%);transition:transform .55s cubic-bezier(.4,0,.2,1);z-index:3}
+.adddlg .top{display:flex;justify-content:space-between;align-items:center;padding:16px 10px 12px;font-size:11.5px;gap:6px}
+.adddlg .top b{font-size:11.5px;white-space:nowrap}
+.adddlg .top span{color:var(--navy)}
+.adddlg .top .add{font-weight:800;color:var(--navy);padding:3px 8px;border-radius:6px}
+.adddlg .it{margin:6px 12px;background:#fff;border-radius:11px;padding:10px;display:flex;gap:10px;align-items:center;font-size:12.5px}
+.adddlg .it img{width:44px;height:44px;border-radius:10px}
+.adddlg .it small{display:block;color:var(--mute);font-size:10px}
+.home{position:absolute;inset:0;background:linear-gradient(160deg,#2b4273,#20325A);opacity:0;transition:opacity .5s;z-index:4;padding:44px 18px 0;pointer-events:none}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px 12px}
+.app{aspect-ratio:1;border-radius:12px;background:rgba(255,255,255,.22)}
+.appw{text-align:center}
+.appw img{width:100%;aspect-ratio:1;border-radius:12px;display:block;border:1px solid rgba(255,255,255,.5)}
+.appw small{display:block;color:#fff;font-size:8.5px;margin-top:3px;white-space:nowrap}
+.portal{position:absolute;inset:0;background:#f4f7fb;opacity:0;transition:opacity .5s;z-index:5;pointer-events:none}
+.portal .nav{background:var(--navy);height:64px;padding:34px 12px 0;color:#fff;font-size:11px;font-weight:700}
+.portal h4{margin:14px 12px 4px;font-size:15px;color:var(--ink)}
+.portal .c{margin:8px 12px;background:#fff;border:1px solid var(--line);border-radius:10px;height:66px}
+.portal .c.n{background:var(--navy);height:96px}
+.P2 .sheet,.P3 .adddlg{transform:none}
+.P3 .sheet{transform:none}
+.P4 .home,.P5 .home{opacity:1}
+.P5 .portal{opacity:1}
+/* ---------- desktop ---------- */
+.win{width:min(600px,100%);border-radius:12px;border:1px solid #c9d3e0;background:#fff;overflow:hidden;position:relative;box-shadow:0 8px 26px rgba(20,33,58,.12)}
+.bar{background:#e3e8f0;padding:8px 10px 0;display:flex;gap:6px;align-items:flex-end}
+.bar .d{display:flex;gap:5px;padding-bottom:8px}.bar .d i{width:10px;height:10px;border-radius:50%;background:#b9c4d4}
+.bar .tab{background:#fff;border-radius:8px 8px 0 0;padding:6px 12px;font-size:11px;display:flex;gap:6px;align-items:center;max-width:170px;white-space:nowrap;overflow:hidden}
+.bar .tab img{width:13px;height:13px;border-radius:3px}
+.adr{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--line)}
+.adr .nv{color:#93a1b5;font-size:13px;letter-spacing:4px}
+.adr .u{flex:1;background:var(--soft);border-radius:999px;height:28px;display:flex;align-items:center;padding:0 6px 0 12px;font-size:11.5px;min-width:0}
+.adr .u span{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.adr .ins{flex:none;width:26px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--navy)}
+.adr .ins svg{width:17px;height:17px}
+.body{height:230px;display:flex;align-items:center;justify-content:center;background:var(--navy)}
+.mini{background:#fff;border-radius:12px;padding:14px 22px;text-align:center}
+.mini img{width:44px;height:44px}
+.mini b{display:block;font-size:13px;color:var(--navy);margin-top:4px}
+.mini i{display:block;margin-top:8px;background:var(--navy);height:22px;border-radius:6px;width:140px}
+.pop{position:absolute;right:10px;top:74px;width:230px;background:#fff;border:1px solid #c9d3e0;border-radius:12px;box-shadow:0 10px 30px rgba(20,33,58,.25);padding:14px;opacity:0;transform:translateY(-8px);transition:all .4s;z-index:2}
+.pop b{font-size:13px}
+.pop .r{display:flex;gap:10px;align-items:center;margin:10px 0 12px;font-size:12px}
+.pop .r img{width:34px;height:34px;border-radius:8px}
+.pop .r small{display:block;color:var(--mute);font-size:10.5px}
+.pop .bs{display:flex;justify-content:flex-end;gap:8px}
+.pop .bs span{font-size:12px;font-weight:700;padding:7px 14px;border-radius:999px;border:1px solid #c9d3e0;color:var(--navy)}
+.pop .bs .go{background:var(--navy);color:#fff;border-color:var(--navy)}
+.appwin{position:absolute;inset:0;background:#f4f7fb;opacity:0;transition:opacity .5s;z-index:3;display:flex;flex-direction:column;pointer-events:none}
+.appwin .tt{background:var(--navy);color:#fff;font-size:11.5px;font-weight:700;padding:9px 12px;display:flex;gap:8px;align-items:center}
+.appwin .tt img{width:16px;height:16px;border-radius:4px}
+.appwin .in{flex:1;padding:12px}
+.appwin h4{margin:0 0 8px;font-size:15px}
+.appwin .g{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+.appwin .g div{background:#fff;border:1px solid var(--line);border-radius:10px;height:120px}
+.appwin .g div:first-child{background:var(--navy)}
+.task{background:#dfe5ee;padding:7px 10px;display:flex;gap:9px;align-items:center;justify-content:center}
+.task i{width:24px;height:24px;border-radius:6px;background:#b9c4d4}
+.task img{width:28px;height:28px;border-radius:7px;border:2px solid #fff;box-shadow:0 0 0 2px var(--navy)}
+.D2 .pop{opacity:1;transform:none}
+.D3 .appwin{opacity:1}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){.dim,.lab,.ptr,.sheet,.adddlg{transition:none}}
+</style>
+</head>
+<body>
+<header><h1>Install the WSE Staff Portal app</h1><p>Watch the steps, then do the same on your device.</p></header>
+<main>
+  <div class="tabs" role="tablist"><button id="tP" class="on" role="tab">📱 iPhone</button><button id="tD" role="tab">💻 Computer</button></div>
+  <div class="cap" aria-live="polite"><div class="n" id="capN">1</div><div><b id="capT"></b><span id="capS"></span></div></div>
+  <div class="stage" id="stage">
+    <!-- iPhone -->
+    <div class="phone" id="phone"><div class="scr">
+      <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="pg"><img src="../icon-192.png" alt=""><h3>WSE Staff Portal</h3><p>Add the portal to your phone as an app.</p><div class="box"></div><div class="bt"></div></div>
+      <div class="saf"><div class="url" id="pUrl">🔒 wse-ksa.github.io</div>
+        <div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="#b0bccd" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+          <svg id="pShare" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5v10h14V11h-1"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h7v15H4zM13 5h7v15h-7z"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="4" width="12" height="12" rx="2"/><path d="M4 9v11h11"/></svg></div></div>
+      <div class="sheet"><div class="hd"><img src="../icon-192.png" alt=""><div><b>WSE Staff Portal</b><small>wse-ksa.github.io</small></div></div>
+        <div class="rows"><div>Copy<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V4h12"/></svg></div><div>Add to Reading List<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="12" r="4"/><circle cx="16" cy="12" r="4"/></svg></div><div>Add Bookmark<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h7v15H4zM13 5h7v15h-7z"/></svg></div>
+          <div id="pA2hs"><b>Add to Home Screen</b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg></div><div>Find on Page<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/></svg></div></div></div>
+      <div class="adddlg"><div class="top"><span>Cancel</span><b>Add to Home Screen</b><span class="add" id="pAdd">Add</span></div><div class="it"><img src="../icon-192.png" alt=""><div>WSE Portal<small>wse-ksa.github.io/training/app</small></div></div></div>
+      <div class="home"><div class="grid"><i class="app"></i><i class="app"></i><i class="app"></i><i class="app"></i><i class="app"></i><i class="app"></i><i class="app"></i><i class="app"></i><i class="app"></i><div class="appw" id="pIcon"><img src="../icon-192.png" alt=""><small>WSE Portal</small></div></div></div>
+      <div class="portal"><div class="nav">WSE Staff Portal</div><h4>Good morning!</h4><div class="c n"></div><div class="c"></div><div class="c"></div></div>
+    </div></div>
+    <!-- Desktop -->
+    <div class="win" id="win" hidden>
+      <div class="bar"><div class="d"><i></i><i></i><i></i></div><div class="tab"><img src="../icon-192.png" alt="">WSE Staff Portal</div></div>
+      <div class="adr"><span class="nv">‹›</span><div class="u"><span id="dUrl">🔒 wse-ksa.github.io/training/app</span><div class="ins" id="dIns"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 7v6M9 10.5l3 3 3-3"/></svg></div></div><span class="nv">⋮</span></div>
+      <div class="body"><div class="mini"><img src="../icon-192.png" alt=""><b>WSE Staff Portal</b><i></i></div></div>
+      <div class="task"><i></i><i></i><i></i><img id="dTask" src="../icon-192.png" alt="" style="visibility:hidden"><i></i></div>
+      <div class="pop"><b>Install app?</b><div class="r"><img src="../icon-192.png" alt=""><div>WSE Staff Portal<small>wse-ksa.github.io</small></div></div><div class="bs"><span>Cancel</span><span class="go" id="dGo">Install</span></div></div>
+      <div class="appwin"><div class="tt"><img src="../icon-192.png" alt="">WSE Staff Portal</div><div class="in"><h4>Good morning!</h4><div class="g"><div></div><div></div></div></div><div class="task"><i></i><i></i><i></i><img id="dTask2" src="../icon-192.png" alt=""><i></i></div></div>
+    </div>
+    <div class="dim" id="dim"></div><div class="lab" id="lab"></div>
+    <div class="ptr" id="ptr"><i></i><svg viewBox="0 0 24 24"><path d="M5 2l14 11h-7l4 8-3 1.5-4-8-4 5z" fill="#fff" stroke="#14213a" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+  </div>
+  <div class="ctl"><button id="prev" aria-label="Previous step">‹</button><div class="dots" id="dots"></div><button id="next" aria-label="Next step">›</button><button class="p" id="play">Pause</button></div>
+  <a class="cta" href="../">Open the install page</a>
+</main>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var G = {
+    P: { root: 'phone', steps: [
+      { t: 'pUrl', l: 'Open the link in Safari', c: 'Open the install page in Safari', s: 'Use Safari, not another browser. The link is wse-ksa.github.io/training/app' },
+      { t: 'pShare', l: 'Tap Share', c: 'Tap the Share button', s: 'It is the square with an arrow, at the bottom of the screen.' },
+      { t: 'pA2hs', l: 'Tap Add to Home Screen', c: 'Tap “Add to Home Screen”', s: 'Scroll down the list if you do not see it.' },
+      { t: 'pAdd', l: 'Tap Add', c: 'Tap “Add”', s: 'Keep the name WSE Portal.' },
+      { t: 'pIcon', l: 'Tap the WSE icon', c: 'Open the app from your home screen', s: 'The WSE icon is now on your home screen. Tap it.' },
+      { t: null, l: '', c: 'Done! The Staff Portal opens', s: 'Sign in with your usual account. Next time, just tap the WSE icon.' } ] },
+    D: { root: 'win', steps: [
+      { t: 'dUrl', l: 'Open the link in Chrome or Edge', c: 'Open the install page in Chrome or Edge', s: 'The link is wse-ksa.github.io/training/app' },
+      { t: 'dIns', l: 'Click the install icon', c: 'Click the install icon', s: 'It is at the right end of the address bar. You can also use the “Install the app” button on the page.' },
+      { t: 'dGo', l: 'Click Install', c: 'Click “Install”', s: 'The browser asks you to confirm.' },
+      { t: 'dTask2', l: 'Pin it to your taskbar', c: 'Done! The portal opens in its own window', s: 'Right-click the WSE icon on the taskbar and choose “Pin to taskbar” to keep it there.' } ] }
+  };
+  var mode = 'P', i = 0, playing = true, timers = [], stage = $('stage'), dim = $('dim'), lab = $('lab'), ptr = $('ptr');
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function clear() { timers.forEach(clearTimeout); timers = []; }
+  function later(f, ms) { timers.push(setTimeout(f, ms)); }
+  function place() {
+    var st = G[mode].steps[i], el = st.t && $(st.t);
+    if (!el) { dim.style.opacity = 0; lab.style.opacity = 0; ptr.style.opacity = 0; return; }
+    var s = stage.getBoundingClientRect(), r = el.getBoundingClientRect(), pad = 6;
+    var x = r.left - s.left - pad, y = r.top - s.top - pad, w = r.width + pad * 2, h = r.height + pad * 2;
+    dim.style.left = x + 'px'; dim.style.top = y + 'px'; dim.style.width = w + 'px'; dim.style.height = h + 'px'; dim.style.opacity = 1;
+    lab.textContent = st.l; lab.style.opacity = 1;
+    var lx = Math.max(100, Math.min(s.width - 100, x + w / 2)), above = y > 60;
+    lab.style.left = lx + 'px'; lab.style.top = (above ? y - 38 : y + h + 10) + 'px';
+    ptr.style.opacity = 1; ptr.style.left = (x + w / 2) + 'px'; ptr.style.top = (y + h / 2) + 'px';
+  }
+  function show() {
+    clear();
+    var g = G[mode], st = g.steps[i];
+    $('phone').hidden = mode !== 'P'; $('win').hidden = mode !== 'D';
+    stage.className = 'stage' + (mode === 'D' ? ' desk' : '');
+    $(g.root).className = (mode === 'P' ? 'phone ' : 'win ') + mode + i;
+    $('capN').textContent = i + 1 > g.steps.length - (mode === 'P' ? 1 : 0) && mode === 'P' ? '✓' : (mode === 'D' && i === g.steps.length - 1 ? '✓' : i + 1);
+    $('capT').textContent = st.c; $('capS').textContent = st.s;
+    $('dots').innerHTML = g.steps.map(function (_, k) { return '<i class="' + (k === i ? 'on' : '') + '"></i>'; }).join('');
+    dim.style.opacity = 0; lab.style.opacity = 0; ptr.classList.remove('tap');
+    later(place, reduce ? 0 : 650);
+    if (st.t) later(function () { ptr.classList.add('tap'); }, 2300);
+    if (playing && !reduce) later(function () { i = (i + 1) % g.steps.length; show(); }, st.t ? 3900 : 4200);
+  }
+  function setMode(m) { mode = m; i = 0; $('tP').className = m === 'P' ? 'on' : ''; $('tD').className = m === 'D' ? 'on' : ''; show(); }
+  $('tP').onclick = function () { setMode('P'); }; $('tD').onclick = function () { setMode('D'); };
+  $('prev').onclick = function () { var n = G[mode].steps.length; i = (i + n - 1) % n; show(); };
+  $('next').onclick = function () { i = (i + 1) % G[mode].steps.length; show(); };
+  $('play').onclick = function () { playing = !playing; this.textContent = playing ? 'Pause' : 'Play'; show(); };
+  if (reduce) { playing = false; $('play').hidden = true; }
+  window.addEventListener('resize', place);
+  var ua = navigator.userAgent || '', mobile = /iPad|iPhone|iPod|Android/.test(ua);
+  setMode(/[?&]d=1/.test(location.search) || (!mobile && !/[?&]p=1/.test(location.search)) ? 'D' : 'P');
+})();
+</script>
+</body>
+</html>
