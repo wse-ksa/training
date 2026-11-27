@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WSE Staff Portal</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#20325A">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="WSE Portal">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#20325A;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+  .card{background:#fff;color:#14213a;border-radius:20px;max-width:460px;width:100%;padding:28px 24px;text-align:center}
+  .ico{width:96px;height:96px;border-radius:22px;display:block;margin:0 auto 14px}
+  h1{font-size:22px;margin:0 0 4px;color:#20325A}
+  p.sub{margin:0 0 20px;color:#5d6b80;font-size:14.5px}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px 16px;font:inherit;font-weight:700;font-size:16px;cursor:pointer;text-decoration:none;margin-top:10px}
+  .primary{background:#20325A;color:#fff}
+  .ghost{background:#fff;color:#20325A;border:2px solid #20325A}
+  .how{margin-top:18px;text-align:left;background:#eef2f9;border-radius:14px;padding:14px 16px;font-size:14.5px;line-height:1.5;display:none}
+  .how b.t{display:block;color:#20325A;margin-bottom:6px}
+  .how ol{margin:0;padding-left:20px}
+  .how li{margin:4px 0}
+  .open{display:none;color:#fff;font-size:17px;text-align:center}
+  .spin{width:34px;height:34px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;margin:0 auto 14px;animation:s 1s linear infinite}
+  @keyframes s{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.spin{animation:none}}
+</style>
+</head>
+<body>
+<div class="open" id="opening"><div class="spin"></div>Opening the Staff Portal…</div>
+<div class="card" id="card">
+  <img class="ico" src="icon-192.png" alt="Wall Street English">
+  <h1>WSE Staff Portal</h1>
+  <p class="sub">Add the portal to your phone or computer as an app.</p>
+  <button class="btn primary" id="install" style="display:none">Install the app</button>
+  <div class="how" id="how-ios"><b class="t">On iPhone or iPad (Safari)</b><ol><li>Tap the <b>Share</b> button (the square with an arrow).</li><li>Tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>. The WSE icon appears on your home screen.</li></ol></div>
+  <div class="how" id="how-ios-other"><b class="t">On iPhone or iPad</b><ol><li>Open this page in <b>Safari</b>.</li><li>Tap <b>Share</b>, then <b>Add to Home Screen</b>.</li></ol></div>
+  <div class="how" id="how-android"><b class="t">On Android (Chrome)</b><ol><li>Tap the <b>⋮</b> menu at the top right.</li><li>Tap <b>Add to Home screen</b> or <b>Install app</b>.</li><li>Tap <b>Install</b>.</li></ol></div>
+  <div class="how" id="how-desktop"><b class="t">On a computer (Chrome or Edge)</b><ol><li>Click the <b>install icon</b> at the right of the address bar, or open the browser menu.</li><li>Choose <b>Install WSE Staff Portal</b> (Edge: Apps → Install this site as an app).</li></ol></div>
+  <div class="how" id="done"><b class="t">Installed ✓</b>Open <b>WSE Staff Portal</b> from your home screen or apps list. Sign in with your usual account.</div>
+  <a class="btn ghost" id="go" href="#">Open the portal now</a>
+</div>
+<script>
+(function () {
+  var PORTAL = 'https://script.google.com/a/macros/wse.edu.sa/s/AKfycbxMsXf8k9tOUnG02KpeJYXjkKOt6_09GHLVPPHuT1vrDsB_YyhZzwOxL8pgltZt3r_D/exec';
+  var $ = function (id) { return document.getElementById(id); };
+  var standalone = (window.matchMedia && (matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: minimal-ui)').matches)) || navigator.standalone === true;
+  $('go').href = PORTAL;
+  if (standalone) {   /* opened from the installed icon: go straight to the portal */
+    $('card').style.display = 'none'; $('opening').style.display = 'block';
+    location.replace(PORTAL); return;
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+  var ua = navigator.userAgent || '', ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1), android = /Android/.test(ua);
+  var iosSafari = ios && !/CriOS|FxiOS|EdgiOS/.test(ua);
+  $(ios ? (iosSafari ? 'how-ios' : 'how-ios-other') : android ? 'how-android' : 'how-desktop').style.display = 'block';
+  var ev = null;
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ev = e; $('install').style.display = 'block'; });
+  $('install').onclick = function () { if (!ev) return; ev.prompt(); ev.userChoice.then(function () { ev = null; $('install').style.display = 'none'; }); };
+  window.addEventListener('appinstalled', function () { ['how-ios', 'how-ios-other', 'how-android', 'how-desktop'].forEach(function (k) { $(k).style.display = 'none'; }); $('install').style.display = 'none'; $('done').style.display = 'block'; });
+})();
+</script>
+</body>
+</html>
