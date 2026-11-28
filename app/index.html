@@ -56,7 +56,7 @@
   $('go').href = PORTAL;
   if (standalone) {   /* opened from the installed icon: go straight to the portal */
     $('card').style.display = 'none'; $('opening').style.display = 'block';
-    location.replace(PORTAL); return;
+    location.replace(PORTAL + '?app=1'); return;   /* owner, 28 Nov 2026: ?app=1 lets the portal count app users */
   }
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
   var ua = navigator.userAgent || '', ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1), android = /Android/.test(ua);
