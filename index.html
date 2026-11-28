@@ -638,7 +638,7 @@ function (el, api) {
   data.forEach(function (d) { var c = kcEl('div', '', '<em>' + d[1] + '</em><i class="' + (d[1] === 0 ? 'zero' : d[1] < 2 ? 'low' : '') + '"></i>'); bars.appendChild(c); bl.appendChild(kcEl('span', '', d[0])); });
   setTimeout(function () { kc$$('.kc-bars i', el).forEach(function (b, k) { if (data[k][1]) b.style.height = (data[k][1] / 5 * 100) + '%'; }); }, 200);
   var stops = [
-    { k: 'Jun – Jul', b: 'Flying start', img: null, t: '<h3>🚀 Flying start</h3><p>From May to mid-July, Tala passed an Encounter about <b>every 6 days</b>, with scores of <b>92–98%</b>. She studied 3–4 hours of multimedia per unit and did every Workbook.</p><p class="mute">That is faster than our KSA rhythm of about one Encounter every 10 days. A strong, motivated student.</p>' },
+    { k: 'Jun – Jul', b: 'Flying start', img: null, t: '<h3>🚀 Flying start</h3><p>From May to mid-July, Tala passed an Encounter about <b>every 6 days</b>, with scores of <b>92–98%</b>. She studied 3–4 hours of multimedia per unit and did every Workbook.</p><p class="mute">That is faster than our KSA rhythm of about one Encounter every 10 days. A strong, motivated student, but a risky pace: students who start this fast often burn out, then slow down or give up mid-course.</p>' },
     { k: 'August', b: 'First cracks', img: 'cal_aug', W: 686, H: 456, steps: [
       { r: [290, 172, 50, 40], l: '5 Aug · late cancel', t: '<b>5 Aug: Late cancelled.</b> One late cancellation is normal life. Notice it, but don’t worry yet.' },
       { r: [210, 250, 60, 40], l: '17 Aug · Unit 42, 93%', t: '<b>17 Aug: Passed Unit 42 with 93%.</b> Her ability is clearly not the problem.' },
@@ -1045,7 +1045,7 @@ function (el, api) {
     { y: 'Mornings, before 1 pm. Tuesdays and Saturdays are usually free.', step: 'Solution', o: [
       { t: 'Great, let’s book Tuesday 11 am for Unit 43 right now, and Saturday’s Social Club. Lessons 1 and 2 before Tuesday is enough.', d: { u: 1, c: 3 }, best: 1, f: 'Concrete and booked during the call, with a small goal she can manage.' },
       { t: 'Check the booking page when you’re free and choose something.', d: { c: -1 }, f: 'This leaves the work to someone who is already overwhelmed.' },
-      { t: 'Let me book you 3 Encounters this week so you can catch up.', d: { c: 1, w: -1 }, f: 'Too much. Our standard is one Encounter a week, and overloading her leads to more no-shows.' }
+      { t: 'Let me book you 3 Encounters this week so you can catch up.', d: { c: 1, w: -1 }, f: 'Too much. Our standard is about one Encounter every 10 days. Going faster burns students out, and they slow down or give up mid-course.' }
     ] },
     { y: 'Tuesday 11 works. OK… I’ll try.', step: 'Follow-up', o: [
       { t: 'Great, see you.', d: {}, f: 'You missed the chance to agree a follow-up.' },
@@ -1214,7 +1214,7 @@ function (el, api) {
     ['“There’s never a slot at my time.” Your best response?', ['Tell them to check every morning', 'Suggest freezing the contract', 'Book together now, with two concrete options', 'Ask them to come earlier'], 2, 'Solve it during the call, and tell the SM about the busy time slot.'],
     ['Where do Encounter no-shows show up first in Core Course?', ['Renewables report', 'Follow-up Queue', 'Finance report', 'Contracts'], 1, 'Check the Follow-up Queue every morning.'],
     ['After an Advising Session, the SOP says to check the student’s progress within…', ['Two weeks', 'One month', 'The end of the level', 'There’s no need'], 0, 'No more than two weeks. Put the date in your plan.'],
-    ['In KSA, a healthy rhythm is about one Encounter every…', ['3 days', '10 days', 'month', '6 weeks'], 1, 'About every 10 days, which means about one level every 45 days.']
+    ['A motivated new student wants to pass an Encounter every few days. What is the best pace to agree?', ['As fast as they can, while they are motivated', 'One Encounter every week', 'About one Encounter every 10 days', 'One Encounter a month, to be safe'], 2, 'About every 10 days (about one level every 45 days), not one a week. Students who start too fast often burn out, then slow down or give up mid-course, like Tala after her flying start.']
   ];
   var k = 0, right = 0, timer;
   el.innerHTML = '<h2>🏁 Final challenge</h2><p class="lead">7 quick questions. Answer within 20 seconds for bonus XP.</p><div data-q></div>';
@@ -1519,9 +1519,9 @@ var KC_MISSION = {
     img: 'dash_top',
     sit: 'She works evenings now and is free on Tuesday and Saturday mornings. <b>Choose the 3 elements</b> that will make her comeback last.',
     refs: ['KSA_10', 'G_II', 'G_SDT', 'SOP_CC'],
-    fb: 'The strongest plans set a <b>steady pace</b> (KSA: an Encounter about every 10 days), a <b>specific when and where</b> (Tuesday 11:00), and a <b>reason to come in</b> (a Social Club with people she knows). Catch-up sprints and vague promises usually fail.',
+    fb: 'The strongest plans set a <b>steady pace</b> (KSA: an Encounter about every 10 days), a <b>specific when and where</b> (Tuesday 11:00), and a <b>reason to come in</b> (a Social Club with people she knows). Catch-up sprints and vague promises usually fail: students who go too fast burn out, then slow down or give up mid-course.',
     opts: [
-      { t: 'A steady pace: one Encounter a week, every Tuesday at 11:00', good: 1 },
+      { t: 'A steady pace: an Encounter about every 10 days, starting Tuesday at 11:00', good: 1 },
       { t: 'Catch up fast: 3 Encounters this week', good: 0 },
       { t: 'A specific mini-goal: “Lessons 1 and 2 by Monday night”', good: 1 },
       { t: '“Study whenever you have time”', good: 0 },
