@@ -1361,7 +1361,7 @@ function kcSpeak(text, kind, onend) {
   }
   try {
     speechSynthesis.cancel();
-    var u = new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g, '').replace(/[👋🙂🙏👏💪😊🎉]/g, ''));
+    var u = new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g, '').replace(/[👋🙂🙏👏💪😊🎉]/g, '').replace(/\bWSE\b/g, 'Wall Street English').replace(/\bSOPs\b/g, 'Standard Operating Procedures').replace(/\bSOP\b/g, 'Standard Operating Procedure'));   /* owner, 28 Nov 2026: the voice reads WSE and SOP in full */
     var v = kcVoice(kind); if (v) { u.voice = v; u.lang = v.lang; }
     var tala = kind === 'yasser';
     u.rate = tala ? 0.9 : 1.02; u.pitch = tala ? (kcVoice.fem ? 1.08 : 1.45) : 1.0; if (tala) u.volume = 0.9;   /* soft, calm pace for Tala; higher pitch if the device has no female voice */
@@ -1442,7 +1442,7 @@ function kcBriefing(el, api) {
     { d: 5, h: '<div class="vt"><small>WSE KSA · Training mission</small>MISSION<br><b>Bring Tala back on track</b></div>', c: 'Your mission: bring Tala back on track, and keep her there.' },
     { d: 6, img: 'dash_top', z: 'kz1', c: 'Meet Tala. Level 12 today, with a contract until March 2027. In June and July she passed an Encounter about every six days, with scores above 90 percent.' },
     { d: 6, img: 'cal_aug', z: 'kz2', c: 'Then in August, something changed. One late cancellation, then four no-shows in eleven days.' },
-    { d: 5, img: 'cal_sep', z: 'kz3', c: 'If nobody acts, September is silent. No classes and no lessons.' },
+    { d: 5, img: 'cal_sep', z: 'kz3', c: 'If no one takes action, September is silent. No classes and no lessons.' },
     { d: 5, h: '<div class="vt"><b style="font-size:72px">57</b><br>days without an Encounter</div>', c: 'In the real story, fifty-seven days passed between two Encounters.' },
     { d: 6, h: '<div class="vt">You have <b>6 decisions</b>.<br><small style="font-size:16px;opacity:.85">Each one is rated against the WSE SOP, KSA standards and global best practice in student support.</small></div>', c: 'You have six decisions. Each one is rated against the WSE SOP, our KSA standards and global best practice in student support. Good luck.' }
   ];
