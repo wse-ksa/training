@@ -1360,14 +1360,26 @@ function kcSpeak(text, kind, onend) {
     setTimeout(go, 1500); return;
   }
   try {
+    /* owner, 28 Nov 2026: more natural narration. The line is spoken phrase by phrase with a short breath at commas and a longer one between sentences (words no longer run together), a little slower, and with a short gap after stopping the previous line so the first word is not cut. WSE and SOP are read in full. */
+    var clean = String(text).replace(/<[^>]+>/g, '').replace(/[👋🙂🙏👏💪😊🎉]/g, '').replace(/\bWSE\b/g, 'Wall Street English').replace(/\bSOPs\b/g, 'Standard Operating Procedures').replace(/\bSOP\b/g, 'Standard Operating Procedure').replace(/\s+/g, ' ').trim();
+    var raw = clean.replace(/([.!?…,;:])\s+/g, '$1\u0001').split('\u0001'), parts = [];
+    raw.forEach(function (c) { if (!c) return; var last = parts[parts.length - 1]; if (last && /[,;:]$/.test(last) && (last.length < 16 || c.length < 10)) parts[parts.length - 1] = last + ' ' + c; else parts.push(c); });
+    var v = kcVoice(kind), tala = kind === 'yasser', tok = (kcSpeak._tok = (kcSpeak._tok || 0) + 1), done = false;
+    var fin = function () { if (done || tok !== kcSpeak._tok) return; done = true; onend && onend(); };
+    var say = function (i) {
+      if (tok !== kcSpeak._tok) return;
+      if (i >= parts.length) return fin();
+      var u = new SpeechSynthesisUtterance(parts[i]);
+      if (v) { u.voice = v; u.lang = v.lang; }
+      u.rate = tala ? 0.9 : 0.96; u.pitch = tala ? (kcVoice.fem ? 1.08 : 1.45) : 1.0; if (tala) u.volume = 0.9;   /* soft, calm pace for Tala; higher pitch if the device has no female voice */
+      var nx = false, next = function () { if (nx) return; nx = true; setTimeout(function () { say(i + 1); }, /[.!?…]$/.test(parts[i]) ? 260 : 110); };
+      u.onend = next; u.onerror = function () { if (tok === kcSpeak._tok) fin(); };
+      kcSpeak._u = u;   /* keep a reference: Chrome can drop an utterance that is garbage-collected mid-sentence */
+      speechSynthesis.speak(u);
+    };
+    var busy = speechSynthesis.speaking || speechSynthesis.pending;
     speechSynthesis.cancel();
-    var u = new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g, '').replace(/[👋🙂🙏👏💪😊🎉]/g, '').replace(/\bWSE\b/g, 'Wall Street English').replace(/\bSOPs\b/g, 'Standard Operating Procedures').replace(/\bSOP\b/g, 'Standard Operating Procedure'));   /* owner, 28 Nov 2026: the voice reads WSE and SOP in full */
-    var v = kcVoice(kind); if (v) { u.voice = v; u.lang = v.lang; }
-    var tala = kind === 'yasser';
-    u.rate = tala ? 0.9 : 1.02; u.pitch = tala ? (kcVoice.fem ? 1.08 : 1.45) : 1.0; if (tala) u.volume = 0.9;   /* soft, calm pace for Tala; higher pitch if the device has no female voice */
-    u.onend = function () { onend && onend(); }; u.onerror = function () { onend && onend(); };
-    kcSpeak._u = u;   /* keep a reference: Chrome can drop an utterance that is garbage-collected mid-sentence */
-    speechSynthesis.speak(u);
+    if (busy) setTimeout(function () { say(0); }, 150); else say(0);
   } catch (e) { onend && onend(); }
 }
 function kcSoundBtn(host) {
